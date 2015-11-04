@@ -13,9 +13,21 @@ local collider
 local allSolidTiles
 
 function love.load()
+  debug = false
+  tilesize = 32
 
 	-- load the level and bind to variable map
 	map = loader.load("level2.tmx")
+
+  walk_img = love.graphics.newImage("img/quad.png")
+  walk_quad = {}
+  for i = 0,7 do
+    walk_quad[i] = love.graphics.newQuad(1+33*i,  2, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
+  end
+  for i = 8,15 do
+    walk_quad[i] = love.graphics.newQuad(1+33*i,  68, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
+  end
+
 
 	-- load HardonCollider, set callback to on_collide and size of 100
 	collider = HC(128, on_collide)
@@ -61,10 +73,16 @@ function love.draw()
 
 	-- draw the level
 	map:draw()
-
-	-- draw the hero as a rectangle
-	hero:draw("fill")
-
+  -- draw the hero as a rectangle
+  if debug then
+    hero:draw("fill")
+  end
+  local h_x, h_y = hero:center()
+  if hero.x_speed == 0 then
+    love.graphics.draw(walk_img, walk_quad[0], h_x - tilesize/2, h_y - tilesize)
+  else
+    love.graphics.draw(walk_img, walk_quad[3], h_x - tilesize/2, h_y - tilesize)
+  end
   love.graphics.print(hero.y_speed)
 end
 
@@ -173,6 +191,13 @@ end
 function love.keyreleased(key)
   if key == " " then
     hero.pode_pular = true
+
+  elseif key == "b" then
+    if debug == false then
+       debug = true
+    else
+       debug = false
+    end
   end
 end
 

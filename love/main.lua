@@ -36,7 +36,6 @@ function love.load()
   y_history = {0, 0, 0, 0}
 
   gravity = (hero.y_speed_base^2)/(2 * hero.jump_height)
-  move = {x=0, y=0}
   i = 0
 
 end
@@ -123,32 +122,19 @@ function collideHeroWithTile(dt, shape_a, shape_b, mtv_x, mtv_y)
   -- io.write("}\n")
 
   --print("------------------------------")
-  --print("sum_x = " .. sum_x .. " mtv_x = " .. mtv_x .. "\nsum_y = " .. sum_y .. " mtv_y = " .. mtv_y) -- " mtv_x = " .. mtv_x .. " mtv_y = " .. mtv_y)
+  -- print("sum_x = " .. sum_x .. " mtv_x = " .. mtv_x .. "\nsum_y = " .. sum_y .. " mtv_y = " .. mtv_y) -- " mtv_x = " .. mtv_x .. " mtv_y = " .. mtv_y)
   if mtv_y < 0
   and sum_x + old.x <= 4 -- no canto, esse valor não ultrapassa 4!!
   and sum_x >= 0 then
     hero_shape.air = false
     hero_shape.y_speed = 0
   elseif mtv_y > 1.5
-  and mtv_y ~= sum_y then
+  and mtv_y ~= sum_y
+  and sum_x == 0 then
     hero_shape.y_speed = 0
   end
 
-  print(hero_shape:center())
-  
   if sum_x >= 0.5 then hero.speed_x = 0 end
-
-  -- if hero.air == true then
-  --   print("lnx = " .. last_nonzero_x .. " ON hero.air")
-  -- else
-  --   print("lnx = " .. last_nonzero_x)
-  -- end
-
-  -- if mtv_x > 0 then
-  --   hero.l_wall = true
-  -- elseif mtv_x < 0 then
-  --   hero.r_wall = true
-  -- end
 
 	-- why not in one function call? because we will need to differentiate between the axis later
 
@@ -234,8 +220,6 @@ function handleInput(dt)
 end
 
 function updateHero(dt)
-
-
 
   if hero.air == true then -- we're falling
     hero.y_speed = hero.y_speed + gravity * dt

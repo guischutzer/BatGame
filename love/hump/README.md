@@ -6,22 +6,23 @@ __HUMP__ is a small collection of tools for developing games with L&Ouml;VE.
 Contents:
 ------------
 
-*   *gamestate.lua*: class to handle gamestates
-*   *timer.lua*: timed function calls and interpolation function wrappers
-*   *vector.lua*: powerful vector class (pure lua)
-*   *class.lua*: "class" system supporting function inheritance (pure lua)
-*   *camera.lua*: move-, zoom- and rotatable camera
-*   *ringbuffer.lua*: a circular container
+*   *gamestate.lua*: Easy gamestate management.
+*   *timer.lua*: Delayed and time-limited function calls and tweening.
+*   *vector.lua*: 2D vector math.
+*   *vector-light.lua*: Lightweight 2D vector math (for optimisation purposes - leads to potentially ugly code).
+*   *class.lua*: Lightweight object orientation (class or prototype based).
+*   *signal.lua*: Simple Signal/Slot (aka. Observer) implementation.
+*   *camera.lua*: Move-, zoom- and rotatable camera with camera locking and movement smoothing.
 
 Documentation
 =============
 
-You can find the documentation here: [http://vrld.github.com/hump/](http://vrld.github.com/hump/ "project page")
+You can find the documentation here: [hump.readthedocs.org](http://hump.readthedocs.org)
 
 
 License
 =======
-> Copyright (c) 2010-2011 Matthias Richter  
+> Copyright (c) 2010-2013 Matthias Richter  
 >  
 > Permission is hereby granted, free of charge, to any person obtaining a copy  
 > of this software and associated documentation files (the "Software"), to deal  

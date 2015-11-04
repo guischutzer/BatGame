@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="100" height="100" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="floresta1" tilewidth="32" tileheight="32" spacing="1">
+  <image source="floresta1.png" trans="ff00ff" width="512" height="512"/>
+  <terraintypes>
+   <terrain name="groundback" tile="-1"/>
+   <terrain name="grama" tile="-1"/>
+  </terraintypes>
+  <tile id="0" terrain="0,0,0,1">
+   <properties>
+    <property name="solid" value="true"/>
+   </properties>
+  </tile>
+  <tile id="1" terrain="0,0,1,1">
+   <properties>
+    <property name="solid" value="true"/>
+   </properties>
+  </tile>
+  <tile id="2" terrain="0,0,1,0">
+   <properties>
+    <property name="solid" value="true"/>
+   </properties>
+  </tile>
+  <tile id="15" terrain="0,1,0,1"/>
+  <tile id="16" terrain="1,1,1,1"/>
+  <tile id="17" terrain="1,0,1,0"/>
+  <tile id="18" terrain="1,1,1,0"/>
+  <tile id="19" terrain="1,1,0,1"/>
+  <tile id="20" terrain="0,0,0,0"/>
+  <tile id="30" terrain="0,1,0,0"/>
+  <tile id="31" terrain="1,1,0,0"/>
+  <tile id="32" terrain="1,0,0,0"/>
+  <tile id="33" terrain="1,0,1,1"/>
+  <tile id="34" terrain="0,1,1,1"/>
+ </tileset>
+ <layer name="grass" width="100" height="100">
+  <data encoding="base64" compression="zlib">
+   eJzt28ENABAQRUHRf9EacMTHziQaeFlOqzV4V998fqTXOtW77b5/VToCAAAAAAAAAADA7+wDrmHvMkvD88xwjuZZ2mfpf573PkPzOf+isnQBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOBGA6aoAZU=
+  </data>
+ </layer>
+</map>

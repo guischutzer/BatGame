@@ -33,7 +33,7 @@
    </properties>
   </tile>
  </tileset>
- <layer name="ground" width="32" height="32">
+ <layer name="grass" width="32" height="32">
   <data>
    <tile gid="7"/>
    <tile gid="7"/>

@@ -15,7 +15,7 @@ local allSolidTiles
 function love.load()
 
 	-- load the level and bind to variable map
-	map = loader.load("level.tmx")
+	map = loader.load("level2.tmx")
 
 	-- load HardonCollider, set callback to on_collide and size of 100
 	collider = HC(128, on_collide)
@@ -149,7 +149,7 @@ end
 
 function setupHero(x,y)
 
-	hero = collider:addRectangle(x,y,16,16)
+	hero = collider:addRectangle(x,y,32,64)
 
 	hero.x_speed = 0
   hero.x_acc = 100
@@ -234,10 +234,11 @@ end
 
 function findSolidTiles(map)
 
+
 	local collidable_tiles = {}
 
 	-- get the layer that the tiles are on by name
-	local layer = map.tl["ground"]
+	local layer = map.tl["grass"]
 
 	for tileX=1,map.width do
 		for tileY=1,map.height do
@@ -249,7 +250,7 @@ function findSolidTiles(map)
 			end
 
 			if tile and tile.properties.solid then
-				local ctile = collider:addRectangle((tileX-1)*16,(tileY-1)*16,16,16)
+				local ctile = collider:addRectangle((tileX-1)*32,(tileY-1)*32,32,32)
 				ctile.type = "tile"
 				collider:addToGroup("tiles", ctile)
 				collider:setPassive(ctile)

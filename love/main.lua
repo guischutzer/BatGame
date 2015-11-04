@@ -123,18 +123,19 @@ function collideHeroWithTile(dt, shape_a, shape_b, mtv_x, mtv_y)
   -- io.write("}\n")
 
   --print("------------------------------")
-  -- print("sum_x = " .. sum_x .. " mtv_x = " .. mtv_x .. "\nsum_y = " .. sum_y .. " mtv_y = " .. mtv_y) -- " mtv_x = " .. mtv_x .. " mtv_y = " .. mtv_y)
-  if mtv_y < 0 then
-    if sum_x + old.x <= 4 -- no canto, esse valor não ultrapassa 4!!
-    and sum_x >= 0 then
-      hero_shape.air = false
-      hero_shape.y_speed = 0
-    end
-  elseif mtv_y > 0 then
-    print("opa")
+  --print("sum_x = " .. sum_x .. " mtv_x = " .. mtv_x .. "\nsum_y = " .. sum_y .. " mtv_y = " .. mtv_y) -- " mtv_x = " .. mtv_x .. " mtv_y = " .. mtv_y)
+  if mtv_y < 0
+  and sum_x + old.x <= 4 -- no canto, esse valor não ultrapassa 4!!
+  and sum_x >= 0 then
+    hero_shape.air = false
+    hero_shape.y_speed = 0
+  elseif mtv_y > 1.5
+  and mtv_y ~= sum_y then
     hero_shape.y_speed = 0
   end
 
+  print(hero_shape:center())
+  
   if sum_x >= 0.5 then hero.speed_x = 0 end
 
   -- if hero.air == true then

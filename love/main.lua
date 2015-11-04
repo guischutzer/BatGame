@@ -8,6 +8,11 @@ loader.path = "maps/"
 
 local HC = require "HardonCollider"
 
+--HUMP :P :P :P
+
+local Timer = require "hump.timer"
+
+
 local hero
 local collider
 local allSolidTiles
@@ -62,8 +67,15 @@ function love.update(dt)
 
 	updateHero(dt)
 	collider:update(dt)
+	Timer.update(dt)
 
 
+end
+
+function love.keypressed(key)
+    if key == ' ' then
+        Timer.after(1, function() print("Hello, world!") end)
+    end
 end
 
 function love.draw()

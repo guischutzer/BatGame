@@ -142,33 +142,33 @@ function collideHeroWithTile(dt, shape_a, shape_b, mtv_x, mtv_y)
   table.remove(y_history, 1)
 
   sum_x = 0
-  -- io.write("x_history = {")
+  if hardonDebug then io.write("x_history = {") end
   for i,val in ipairs(x_history) do
     if val > 0 then
       sum_x = sum_x + val
     else
       sum_x = sum_x - val
     end
-    --io.write(val)
-    -- if i ~= 4 then io.write(", ") end
+    if hardonDebug then io.write(val) end
+    if hardonDebug and i ~= 4 then io.write(", ") end
   end
-  -- io.write("}\n")
+  if hardonDebug then io.write("}\n") end
 
   sum_y = 0
-  -- io.write("y_history = {")
+  if hardonDebug then io.write("y_history = {") end
   for i,val in ipairs(y_history) do
     if val > 0 then
       sum_y = sum_y + val
     else
       sum_y = sum_y - val
     end
-    -- io.write(val)
-    -- if i ~= 4 then io.write(", ") end
+    if hardonDebug then io.write(val) end
+    if hardonDebug and i ~= 4 then io.write(", ") end
   end
-  -- io.write("}\n")
+  if hardonDebug then io.write("}\n") end
 
-  --print("------------------------------")
-  -- print("sum_x = " .. sum_x .. " mtv_x = " .. mtv_x .. "\nsum_y = " .. sum_y .. " mtv_y = " .. mtv_y) -- " mtv_x = " .. mtv_x .. " mtv_y = " .. mtv_y)
+  if hardonDebug then print("------------------------------") end
+  if hardonDebug then print("sum_x = " .. sum_x .. " mtv_x = " .. mtv_x .. "\nsum_y = " .. sum_y .. " mtv_y = " .. mtv_y) end
   if mtv_y < 0
   and sum_x + old.x <= 4 -- no canto, esse valor não ultrapassa 4!!
   and sum_x >= 0 then
@@ -225,6 +225,13 @@ function love.keyreleased(key)
        debug = true
     else
        debug = false
+    end
+
+  elseif key == "h" then
+    if hardonDebug == false then
+      hardonDebug = true
+    else
+      hardonDebug = false
     end
   end
 end

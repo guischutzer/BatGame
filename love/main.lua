@@ -7,12 +7,7 @@ local loader = require "AdvTiledLoader/Loader"
 loader.path = "maps/"
 
 local HC = require "HardonCollider"
-
---HUMP :P :P :P
-
 local Timer = require "hump.timer"
-
-
 local hero
 local collider
 local allSolidTiles
@@ -23,7 +18,10 @@ function love.load()
 
 	-- load the level and bind to variable map
 	map = loader.load("level2.tmx")
-
+  gambs = 3
+  anim_walk = 1
+  walk_timer = Timer.new()
+  walking = false
   walk_img = love.graphics.newImage("img/quad.png")
   walk_quad = {}
   for i = 0,7 do
@@ -59,6 +57,9 @@ end
 
 function love.update(dt)
 
+  walk_timer.update(dt)
+
+
 	-- do all the input and movement
 
 	handleInput(dt)
@@ -67,15 +68,8 @@ function love.update(dt)
 
 	updateHero(dt)
 	collider:update(dt)
-	Timer.update(dt)
 
 
-end
-
-function love.keypressed(key)
-    if key == ' ' then
-        Timer.after(1, function() print("Hello, world!") end)
-    end
 end
 
 function love.draw()
@@ -86,16 +80,38 @@ function love.draw()
 	-- draw the level
 	map:draw()
   -- draw the hero as a rectangle
+
+  -- debugs stuff
   if debug then
     hero:draw("fill")
+    love.graphics.print(hero.y_speed)
+    love.graphics.print(anim_walk, 30)
+    if walk_handle then
+      love.graphics.print("lololol", 100)
+    end
   end
   local h_x, h_y = hero:center()
   if hero.x_speed == 0 then
-    love.graphics.draw(walk_img, walk_quad[0], h_x - tilesize/2, h_y - tilesize)
+    love.graphics.draw(walk_img, walk_quad[0], h_x - tilesize/2, h_y - tilesize + gambs)
+    if walk_handle then
+      walk_timer.cancel(walk_handle)
+      walking = false
+    end
   else
-    love.graphics.draw(walk_img, walk_quad[3], h_x - tilesize/2, h_y - tilesize)
+    if not walking then
+      walk_handle = walk_timer.every(1/12, animTimer)
+      walking = true
+    end
+    love.graphics.draw(walk_img, walk_quad[anim_walk], h_x - tilesize/2, h_y - tilesize + gambs)
   end
-  love.graphics.print(hero.y_speed)
+end
+
+function animTimer()
+  anim_walk = anim_walk + 1
+  anim_walk = anim_walk%7
+  if hero.flip then
+   anim_walk = anim_walk + 8
+  end
 end
 
 function on_collide(dt, shape_a, shape_b, mtv_x, mtv_y)
@@ -224,7 +240,7 @@ function handleInput(dt)
   end
 
 	if love.keyboard.isDown("left") then
-    flip = true
+    hero.flip = true
     if hero.x_speed >= 0 then
       if hero.x_speed >= hero.x_speed_base then
         hero.x_speed = -hero.x_speed
@@ -237,7 +253,7 @@ function handleInput(dt)
       hero.x_speed = -hero.x_speed_max
     end
 	elseif love.keyboard.isDown("right") then
-    flip = false -- flag para inverter o desenho
+    hero.flip = false -- flag para inverter o desenho
     if hero.x_speed <= 0 then
       if hero.x_speed <= -hero.x_speed_base then
         hero.x_speed = -hero.x_speed

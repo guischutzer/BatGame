@@ -26,6 +26,9 @@ function love.load()
   anim_walk = 1
   walk_timer = Timer.new()
   walking = false
+
+  back_img = love.graphics.newImage("img/darkness.jpg")
+
   walk_img = love.graphics.newImage("img/quad.png")
   walk_quad = {}
   for i = 0,7 do
@@ -57,6 +60,7 @@ function love.load()
   gravity = (hero.y_speed_base^2)/(2 * hero.jump_height)
   i = 0
   cam = Camera(hero:center())
+  par = Camera(hero:center())
 
 end
 
@@ -79,10 +83,15 @@ function love.update(dt)
   local xNew, yNew = hero:center()
 
   cam:move(2 * (xNew - xOld),2 * (yNew - yOld))
+  par:move(1 * (xNew - xOld),1 * (yNew - yOld))
 
 end
 
 function love.draw()
+
+  par:attach()
+  love.graphics.draw(back_img, 0, 0, 0, 4, 4, -40, -40)
+  par:detach()
 
   cam:attach()
 	-- scale everything 2x
@@ -117,6 +126,7 @@ function love.draw()
   end
 
   cam:detach()
+
 
 end
 

@@ -8,11 +8,15 @@ loader.path = "maps/"
 
 local HC = require "HardonCollider"
 local Timer = require "hump.timer"
+local Camera = require "hump.camera"
+
 local hero
 local collider
 local allSolidTiles
 
 function love.load()
+
+  love.graphics.setDefaultFilter("nearest")
   debug = false
   tilesize = 32
 
@@ -25,10 +29,10 @@ function love.load()
   walk_img = love.graphics.newImage("img/quad.png")
   walk_quad = {}
   for i = 0,7 do
-    walk_quad[i] = love.graphics.newQuad(1+33*i,  2, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
+    walk_quad[i] = love.graphics.newQuad(1+33*i,  20, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
   end
   for i = 8,15 do
-    walk_quad[i] = love.graphics.newQuad(1+33*i,  68, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
+    walk_quad[i] = love.graphics.newQuad(1+33*i,  80, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
   end
 
 
@@ -52,10 +56,13 @@ function love.load()
 
   gravity = (hero.y_speed_base^2)/(2 * hero.jump_height)
   i = 0
+  cam = Camera(hero:center())
 
 end
 
 function love.update(dt)
+
+  local xOld, yOld = hero:center()
 
   walk_timer.update(dt)
 
@@ -69,11 +76,15 @@ function love.update(dt)
 	updateHero(dt)
 	collider:update(dt)
 
+  local xNew, yNew = hero:center()
+
+  cam:move(2 * (xNew - xOld),2 * (yNew - yOld))
 
 end
 
 function love.draw()
 
+  cam:attach()
 	-- scale everything 2x
 	love.graphics.scale(2,2)
 
@@ -104,6 +115,9 @@ function love.draw()
     end
     love.graphics.draw(walk_img, walk_quad[anim_walk], h_x - tilesize/2, h_y - tilesize + gambs)
   end
+
+  cam:detach()
+
 end
 
 function animTimer()
@@ -195,7 +209,7 @@ end
 
 function setupHero(x,y)
 
-	hero = collider:addRectangle(x,y,32,64)
+	hero = collider:addRectangle(x,y,32,30)
 
 	hero.x_speed = 0
   hero.x_acc = 100
@@ -280,6 +294,7 @@ function handleInput(dt)
 end
 
 function updateHero(dt)
+
 
   if hero.air == true then -- we're falling
     hero.y_speed = hero.y_speed + gravity * dt

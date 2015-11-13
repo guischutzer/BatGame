@@ -22,21 +22,23 @@ function love.load()
 
 	-- load the level and bind to variable map
 	map = loader.load("level2.tmx")
-  gambs = 3
-  anim_walk = 1
+
+  -- Variables related to  animation
+  walk_frame = 1 --walk animation frame
   walk_timer = Timer.new()
   walking = false
+  walk_img = love.graphics.newImage("img/walk_frames.png")
+  idle_img = love.graphics.newImage("img/idle.png")
+  fall_img = love.graphics.newImage("img/fall.png")
+  walk_quad = {}
+  --walking frames
+  for i = 0,7 do
+    walk_quad[i] = love.graphics.newQuad(1+33*i, 0, tilesize, 49, walk_img:getWidth(), walk_img:getHeight())
+  end
 
   back_img = love.graphics.newImage("img/darkness.jpg")
 
-  walk_img = love.graphics.newImage("img/quad.png")
-  walk_quad = {}
-  for i = 0,7 do
-    walk_quad[i] = love.graphics.newQuad(1+33*i,  20, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
-  end
-  for i = 8,15 do
-    walk_quad[i] = love.graphics.newQuad(1+33*i,  80, tilesize, 2*tilesize, walk_img:getWidth(), walk_img:getHeight())
-  end
+
 
 
 	-- load HardonCollider, set callback to on_collide and size of 100
@@ -85,6 +87,7 @@ function love.update(dt)
   cam:move(2 * (xNew - xOld),2 * (yNew - yOld))
   par:move(1 * (xNew - xOld),1 * (yNew - yOld))
 
+
 end
 
 function love.draw()
@@ -105,24 +108,24 @@ function love.draw()
   if debug then
     hero:draw("fill")
     love.graphics.print(hero.y_speed)
-    love.graphics.print(anim_walk, 30)
-    if walk_handle then
-      love.graphics.print("lololol", 100)
-    end
   end
+
   local h_x, h_y = hero:center()
-  if hero.x_speed == 0 then
-    love.graphics.draw(walk_img, walk_quad[0], h_x - tilesize/2, h_y - tilesize + gambs)
+  if hero.y_speed ~= 0 then
+  	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+  elseif hero.x_speed == 0 then
+    love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
     if walk_handle then
       walk_timer.cancel(walk_handle)
       walking = false
+      walk_frame = 1
     end
   else
     if not walking then
       walk_handle = walk_timer.every(1/12, animTimer)
       walking = true
     end
-    love.graphics.draw(walk_img, walk_quad[anim_walk], h_x - tilesize/2, h_y - tilesize + gambs)
+    love.graphics.draw(walk_img, walk_quad[walk_frame], h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2 , 0, (hero.flip and -1 or 1), 1)
   end
 
   cam:detach()
@@ -131,11 +134,7 @@ function love.draw()
 end
 
 function animTimer()
-  anim_walk = anim_walk + 1
-  anim_walk = anim_walk%7
-  if hero.flip then
-   anim_walk = anim_walk + 8
-  end
+  walk_frame = walk_frame%7 +1
 end
 
 function on_collide(dt, shape_a, shape_b, mtv_x, mtv_y)
@@ -219,7 +218,7 @@ end
 
 function setupHero(x,y)
 
-	hero = collider:addRectangle(x,y,32,30)
+	hero = collider:addRectangle(x,y,32,49)
 
 	hero.x_speed = 0
   hero.x_acc = 100

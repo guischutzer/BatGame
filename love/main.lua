@@ -112,7 +112,7 @@ function love.draw()
 
   local h_x, h_y = hero:center()
   if hero.y_speed ~= 0 then
-  	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+  	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
   elseif hero.x_speed == 0 then
     love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
     if walk_handle then

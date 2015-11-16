@@ -3,12 +3,17 @@
 --
 
 local loader = require "AdvTiledLoader/Loader"
+local sti = require "sti"
+
 -- set the path to the Tiled map files
 loader.path = "maps/"
 
-local HC = require "HardonCollider"
+
+
+local HCC = require "HC"
 local Timer = require "hump.timer"
 local Camera = require "hump.camera"
+
 
 local hero
 local collider
@@ -16,12 +21,14 @@ local allSolidTiles
 
 function love.load()
 
+  tiles = {}
+
   love.graphics.setDefaultFilter("nearest")
   debug = false
   tilesize = 32
 
 	-- load the level and bind to variable map
-	map = loader.load("level2.tmx")
+	map = sti.new("maps/level2.lua")
 
   -- Variables related to  animation
   walk_frame = 1 --walk animation frame
@@ -38,17 +45,19 @@ function love.load()
 
   back_img = love.graphics.newImage("img/darkness.jpg")
 
-
-
-
-	-- load HardonCollider, set callback to on_collide and size of 100
-	collider = HC(128, on_collide)
-
-	-- find all the tiles that we can collide with
-	allSolidTiles = findSolidTiles(map)
-
-	-- set up the hero object, set him to position 32, 32
+----[[
+  for y = 1, map.height do
+  		for x = 1, map.width do
+  			if map.layers[1].data[y][x] ~= nil then
+  				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
+          table.insert(tiles, ti)
+          --print(x)
+          --print(y)
+			end
+		end
+  end
 	setupHero(32,32)
+
 
   old = {
     x = -1000,
@@ -70,8 +79,19 @@ function love.update(dt)
 
   local xOld, yOld = hero:center()
 
+  todo = {}
+
   walk_timer.update(dt)
 
+  --hero:move(0, 800*dt)
+
+  for shape, delta in pairs(HCC.collisions(hero)) do
+        --hero:move(delta.x, delta.y)
+        colidir(dt, hero, delta.x, delta.y)
+        table.insert(todo, shape)
+    end
+
+  --print(#todo)
 
 	-- do all the input and movement
 
@@ -80,7 +100,6 @@ function love.update(dt)
 	-- update the collision detection
 
 	updateHero(dt)
-	collider:update(dt)
 
   local xNew, yNew = hero:center()
 
@@ -103,6 +122,10 @@ function love.draw()
 	-- draw the level
 	map:draw()
   -- draw the hero as a rectangle
+
+  for _,t in pairs(todo) do
+    t:draw('fill')
+  end
 
   -- debugs stuff
   if debug then
@@ -137,26 +160,7 @@ function animTimer()
   walk_frame = walk_frame%7 +1
 end
 
-function on_collide(dt, shape_a, shape_b, mtv_x, mtv_y)
-
-	-- seperate collision function for entities
-	collideHeroWithTile(dt, shape_a, shape_b, mtv_x, mtv_y)
-
-end
-
-function collideHeroWithTile(dt, shape_a, shape_b, mtv_x, mtv_y)
-
-	-- sort out which one our hero shape is
-	local hero_shape, tileshape
-	if shape_a == hero and shape_b.type == "tile" then
-		hero_shape = shape_a
-	elseif shape_b == her and shape_a.type == "tile" then
-		hero_shape = shape_b
-	else
-		-- none of the two shapes is a tile, return to upper function
-		return
-	end
-
+function colidir(dt, hero_shape, mtv_x, mtv_y)
 
   table.insert(x_history, 4, mtv_x)
   table.remove(x_history, 1)
@@ -216,9 +220,11 @@ function collideHeroWithTile(dt, shape_a, shape_b, mtv_x, mtv_y)
 
 end
 
+
+
 function setupHero(x,y)
 
-	hero = collider:addRectangle(x,y,32,49)
+	hero = HCC.rectangle(x,y,32,49)
 
 	hero.x_speed = 0
   hero.x_acc = 100
@@ -314,35 +320,4 @@ function updateHero(dt)
 
   hero:move(hero.x_speed*dt, 0)
 
-end
-
-function findSolidTiles(map)
-
-
-	local collidable_tiles = {}
-
-	-- get the layer that the tiles are on by name
-	local layer = map.tl["grass"]
-
-	for tileX=1,map.width do
-		for tileY=1,map.height do
-
-			local tile
-
-			if layer.tileData[tileY] then
-				tile = map.tiles[layer.tileData[tileY][tileX]]
-			end
-
-			if tile and tile.properties.solid then
-				local ctile = collider:addRectangle((tileX-1)*32,(tileY-1)*32,32,32)
-				ctile.type = "tile"
-				collider:addToGroup("tiles", ctile)
-				collider:setPassive(ctile)
-				table.insert(collidable_tiles, ctile)
-			end
-
-		end
-	end
-
-	return collidable_tiles
 end

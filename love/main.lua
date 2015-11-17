@@ -73,6 +73,11 @@ function love.load()
   cam = Camera(hero:center())
   par = Camera(hero:center())
 
+  gravity = 400
+	jump_height = -300
+  j_Pack = 0.5
+  j_Pack_Max = 0.5
+
 end
 
 function love.update(dt)
@@ -85,29 +90,80 @@ function love.update(dt)
 
   --hero:move(0, 800*dt)
 
-  for shape, delta in pairs(HCC.collisions(hero)) do
-        --hero:move(delta.x, delta.y)
-        colidir(dt, hero, delta.x, delta.y)
-        table.insert(todo, shape)
-    end
+
 
   --print(#todo)
 
 	-- do all the input and movement
 
-	handleInput(dt)
+	--handleInput(dt)
 
 	-- update the collision detection
 
-	updateHero(dt)
+	--updateHero(dt)
+
+
+  if (hero.y_speed == 0) then hero.y_speed = hero.y_speed + 0.0001 end
+
+  if hero.jetpack_fuel > 0 -- we can still move upwards
+	and love.keyboard.isDown(" ") then -- and we're actually holding space
+		hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
+		hero.y_speed = hero.y_speed + jump_height * (dt / hero.jetpack_fuel_max)
+	end
+  if love.keyboard.isDown("right") then
+    hero.x_speed = hero.x_speed_max
+  end
+  if love.keyboard.isDown("left") then
+    hero.x_speed = - hero.x_speed_max
+  end
+  if hero.y_speed ~= 0 then -- we're probably jumping
+		hero:move(0, hero.y_speed * dt) -- dt means we wont move at
+		-- different speeds if the game lags
+		hero.y_speed = hero.y_speed + gravity * dt
+    dx, dy = 0,0
+    for shape, delta in pairs(HCC.collisions(hero)) do
+          --hero:move(delta.x, delta.y)
+          --colidir(dt, hero, delta.x, delta.y)
+          table.insert(todo, shape)
+          dx = dx + delta.x
+          dy = dy + delta.y
+    end
+		if dy < 0 then -- we hit the ground again
+			hero.y_speed = 0
+			hero:move(0,dy)
+      hero.jetpack_fuel = hero.jetpack_fuel_max
+		end
+	end
+
+  dx, dy = 0, 0
+  hero:move(hero.x_speed * dt, 0)
+  for shape, delta in pairs(HCC.collisions(hero)) do
+        --hero:move(delta.x, delta.y)
+        --colidir(dt, hero, delta.x, delta.y)
+        table.insert(todo, shape)
+        dx = dx + delta.x
+        dy = dy + delta.y
+  end
+  if dx < 0 or dx > 0 then
+    hero.x_speed = 0
+    hero:move(dx, 0)
+  end
+
 
   local xNew, yNew = hero:center()
 
-  cam:move(2 * (xNew - xOld),2 * (yNew - yOld))
-  par:move(1 * (xNew - xOld),1 * (yNew - yOld))
+  dxCam, dyCam = xNew - xOld, yNew - yOld
+
+  if dxCam > -1 and dxCam < 1 then dxCam = 0 end
+  if dyCam > -1 and dyCam < 1 then dyCam = 0 end
+
+  cam:move(2 * (dxCam),2 * (dyCam))
+  par:move(1 * (dxCam),1 * (dyCam))
 
 
 end
+
+
 
 function love.draw()
 
@@ -160,71 +216,14 @@ function animTimer()
   walk_frame = walk_frame%7 +1
 end
 
-function colidir(dt, hero_shape, mtv_x, mtv_y)
-
-  table.insert(x_history, 4, mtv_x)
-  table.remove(x_history, 1)
-
-  table.insert(y_history, 4, mtv_y)
-  table.remove(y_history, 1)
-
-  sum_x = 0
-  if hardonDebug then io.write("x_history = {") end
-  for i,val in ipairs(x_history) do
-    if val > 0 then
-      sum_x = sum_x + val
-    else
-      sum_x = sum_x - val
-    end
-    if hardonDebug then io.write(val) end
-    if hardonDebug and i ~= 4 then io.write(", ") end
-  end
-  if hardonDebug then io.write("}\n") end
-
-  sum_y = 0
-  if hardonDebug then io.write("y_history = {") end
-  for i,val in ipairs(y_history) do
-    if val > 0 then
-      sum_y = sum_y + val
-    else
-      sum_y = sum_y - val
-    end
-    if hardonDebug then io.write(val) end
-    if hardonDebug and i ~= 4 then io.write(", ") end
-  end
-  if hardonDebug then io.write("}\n") end
-
-  if hardonDebug then print("------------------------------") end
-  if hardonDebug then print("sum_x = " .. sum_x .. " mtv_x = " .. mtv_x .. "\nsum_y = " .. sum_y .. " mtv_y = " .. mtv_y) end
-  if mtv_y < 0
-  and sum_x + old.x <= 4 -- no canto, esse valor não ultrapassa 4!!
-  and sum_x >= 0 then
-    hero_shape.air = false
-    hero_shape.y_speed = 0
-  elseif mtv_y > 1.5
-  and mtv_y ~= sum_y
-  and sum_x == 0 then
-    hero_shape.y_speed = 0
-  end
-
-  if sum_x >= 0.5 then hero.speed_x = 0 end
-
-	-- why not in one function call? because we will need to differentiate between the axis later
-
-  if mtv_x ~= old.x then hero_shape:move(mtv_x, 0) end
-  if mtv_y ~= old.y then hero_shape:move(0, mtv_y) end
-
-  old.x = mtv_x
-  old.y = mtv_y
-
-
-end
-
 
 
 function setupHero(x,y)
 
 	hero = HCC.rectangle(x,y,32,49)
+
+  hero.jetpack_fuel = 0.3
+  hero.jetpack_fuel_max = 0.3
 
 	hero.x_speed = 0
   hero.x_acc = 100

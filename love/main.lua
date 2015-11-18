@@ -98,10 +98,16 @@ end
 
 function love.update(dt)
 
+
   local xOld, yOld = hero:center()
 
   --local mx, my = love.mouse.getPosition();
+<<<<<<< HEAD
   --print(mx, my)
+=======
+  print(hero:center())
+  print(cam:mousePosition())
+>>>>>>> 0de74fa0b310c29c41e061c77973ced280f07ad3
 
   todo = {}
 
@@ -145,6 +151,8 @@ function love.update(dt)
 		hero:move(0, hero.y_speed * dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
+
+    
     for shape, delta in pairs(HCC.collisions(hero)) do
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
@@ -165,6 +173,8 @@ function love.update(dt)
       hero.air = false
 		end
 	end
+
+
 
   dx, dy = 0, 0
   hero:move(hero.x_speed * dt, 0)
@@ -274,7 +284,7 @@ end
 
 function setupHero(x,y)
 
-	hero = HCC.rectangle(x,y,5,49)
+	hero = HCC.rectangle(x,y,40,49)
 
   hero.jetpack_fuel = 0.3
   hero.jetpack_fuel_max = 0.3

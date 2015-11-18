@@ -13,7 +13,7 @@ loader.path = "maps/"
 local HCC = require "HC"
 local Timer = require "hump.timer"
 local Camera = require "hump.camera"
-
+local Vector = require "hump.vector"
 
 local hero
 local collider
@@ -67,6 +67,8 @@ function love.load()
   end
 	setupHero(32,32)
 
+  sonar = 0
+
 
   old = {
     x = -1000,
@@ -94,19 +96,16 @@ function abs(x)
   return x
 end
 
-function niceAbs(x,y)
-  if abs(x) > abs(y) then return x end
-  return y
-end
 
 function love.update(dt)
 
 
-  local xOld, yOld = hero:center()
+  xOld, yOld = hero:center()
+  xc, yc = cam:mousePosition()
 
   --local mx, my = love.mouse.getPosition();
-  print(hero:center())
-  print(cam:mousePosition())
+  print(xOld, yOld)
+  print(xc / 2,yc / 2)
 
   todo = {}
 
@@ -151,7 +150,7 @@ function love.update(dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
 
-    
+
     for shape, delta in pairs(HCC.collisions(hero)) do
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
@@ -220,6 +219,8 @@ function love.draw()
   cam:attach()
 	-- scale everything 2x
 	love.graphics.scale(2,2)
+
+  love.graphics.line(xOld, yOld, xc / 2, yc / 2)
 
 	-- draw the level
 	map:draw()

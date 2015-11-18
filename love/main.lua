@@ -30,6 +30,12 @@ function love.load()
 	-- load the level and bind to variable map
 	map = sti.new("maps/level2.lua")
 
+  --Variables related to Kat invulnerability
+
+  invul = false
+  invul_timer = Timer.new()
+  blink = false
+
   -- Variables related to  animation
   walk_frame = 1 --walk animation frame
   walk_timer = Timer.new()
@@ -99,7 +105,10 @@ function love.update(dt)
 
   todo = {}
 
+  -- Timers
   walk_timer.update(dt)
+  invul_timer.update(dt)
+
 
   --hero:move(0, 800*dt)
 
@@ -218,23 +227,28 @@ function love.draw()
     love.graphics.print(hero.y_speed)
   end
 
+  --Draw Kat
+if not blink then
   local h_x, h_y = hero:center()
-  if hero.y_speed ~= 0 then
-  	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
-  elseif hero.x_speed == 0 then
-    love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
-    if walk_handle then
-      walk_timer.cancel(walk_handle)
-      walking = false
-      walk_frame = 1
+    if hero.y_speed ~= 0 then
+    	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+    elseif hero.x_speed == 0 then
+      love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+      if walk_handle then
+        walk_timer.cancel(walk_handle)
+        walking = false
+        walk_frame = 1
+      end
+    else
+      if not walking then
+        walk_handle = walk_timer.every(1/12, animTimer)
+        walking = true
+      end
+      love.graphics.draw(walk_img, walk_quad[walk_frame], h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2 , 0, (hero.flip and -1 or 1), 1)
     end
-  else
-    if not walking then
-      walk_handle = walk_timer.every(1/12, animTimer)
-      walking = true
-    end
-    love.graphics.draw(walk_img, walk_quad[walk_frame], h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2 , 0, (hero.flip and -1 or 1), 1)
   end
+
+  --End Draw Kat
 
   cam:detach()
 
@@ -245,7 +259,18 @@ function animTimer()
   walk_frame = walk_frame%7 +1
 end
 
-
+function invul_activate()
+  if invul then return end
+  invul = true
+  local t = 0
+  invul_timer.during(4, function(dt)
+    t = t + dt
+    blink = (t%.2) < .1
+  end, function()
+    invul = false
+    blink = false
+  end)
+end
 
 function setupHero(x,y)
 
@@ -290,6 +315,9 @@ function love.keyreleased(key)
     else
       hardonDebug = false
     end
+
+  elseif key == "i" then
+    invul_activate()
   end
 end
 --[[

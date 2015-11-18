@@ -13,13 +13,22 @@ loader.path = "maps/"
 local HCC = require "HC"
 local Timer = require "hump.timer"
 local Camera = require "hump.camera"
-local Vector = require "hump.vector"
+local Gamestate = require "hump.gamestate"
+
+--GAMESTATES
+local menu = {}
+local game = {}
+local pause = {}
 
 local hero
 local collider
 local allSolidTiles
 
 function love.load()
+
+  --Handles Gamestates
+  Gamestate.registerEvents()
+  Gamestate.switch(menu)
 
   tiles = {}
 
@@ -51,13 +60,10 @@ function love.load()
 
   back_img = love.graphics.newImage("img/darkness.jpg")
 
-  for k, v in pairs( map.layers ) do
-   print(k, v)
-  end
 ----[[
   for y = 1, map.height do
   		for x = 1, map.width do
-  			if map.layers["grass"].data[y][x] ~= nil then
+  			if map.layers[1].data[y][x] ~= nil then
   				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
           table.insert(tiles, ti)
           --print(x)
@@ -97,15 +103,13 @@ function abs(x)
 end
 
 
-function love.update(dt)
-
+function game:update(dt)
 
   xOld, yOld = hero:center()
   xc, yc = cam:mousePosition()
 
   --local mx, my = love.mouse.getPosition();
-  print(xOld, yOld)
-  print(xc / 2,yc / 2)
+
 
   todo = {}
 
@@ -135,8 +139,8 @@ function love.update(dt)
     hero.air = true
 	end
 
-  hero.flip = false
   if love.keyboard.isDown("right") then
+    hero.flip = false
     hero.x_speed = hero.x_speed_max
   elseif love.keyboard.isDown("left") then
     hero.x_speed = - hero.x_speed_max
@@ -150,7 +154,6 @@ function love.update(dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
 
-
     for shape, delta in pairs(HCC.collisions(hero)) do
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
@@ -158,20 +161,19 @@ function love.update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            hero:move(0,dy)
+            hero:move(0,delta.y)
         end
     end
-    if abs(dy) < 1 then dy = 0 end
+    if abs(dy) < 0.11 then dy = 0 end
 
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
 			--hero:move(0,dy)
-    hero.jetpack_fuel = hero.jetpack_fuel_max
-    hero.air = false
+    if dy == 0 then hero.air = true end
+      hero.jetpack_fuel = hero.jetpack_fuel_max
+      hero.air = false
 		end
 	end
-
-
 
   dx, dy = 0, 0
   hero:move(hero.x_speed * dt, 0)
@@ -197,7 +199,7 @@ function love.update(dt)
   if (#todo == 0) then
     --print("rsrs")
     hero.air = true
-  else print("----") end
+  end
 
   dxCam, dyCam = xNew - xOld, yNew - yOld
   cam:move(2 * (dxCam),2 * (dyCam))
@@ -208,9 +210,25 @@ function love.update(dt)
 
 end
 
+function menu:draw()
+  for i = 1,100 do
+    for j = 1, 100 do
+      love.graphics.draw(idle_img, 50*i - 100,50*j - 100)
+    end
+  end
+  love.graphics.print("KAT VS THE WORLD", 0, 600, -.5, 8)
+end
 
+function pause:draw()
+  for i = 1,100 do
+    for j = 1, 100 do
+      love.graphics.draw(idle_img, 50*i - 100,50*j - 100)
+    end
+  end
+  love.graphics.print("KAT VS THE PAUSE", 0, 600, -.5, 8)
+end
 
-function love.draw()
+function game:draw()
 
   par:attach()
   love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
@@ -233,7 +251,7 @@ function love.draw()
   -- debugs stuff
   if debug then
     hero:draw("fill")
-    love.graphics.print(hero.y_speed)
+    print(hero.flip)
   end
 
   --Draw Kat
@@ -283,7 +301,7 @@ end
 
 function setupHero(x,y)
 
-	hero = HCC.rectangle(x,y,40,49)
+	hero = HCC.rectangle(x,y,5,49)
 
   hero.jetpack_fuel = 0.3
   hero.jetpack_fuel_max = 0.3
@@ -307,7 +325,19 @@ function setupHero(x,y)
 
 end
 
-function love.keyreleased(key)
+function menu:keyreleased(key)
+  if key == " " then
+    Gamestate.switch(game)
+  end
+end
+
+function pause:keyreleased(key)
+  if key == "p" then
+    Gamestate.switch(game)
+  end
+end
+
+function game:keyreleased(key)
   if key == " " then
     hero.pode_pular = true
 
@@ -327,6 +357,9 @@ function love.keyreleased(key)
 
   elseif key == "i" then
     invul_activate()
+
+  elseif key == "p" then
+    Gamestate.switch(pause)
   end
 end
 --[[

@@ -51,10 +51,13 @@ function love.load()
 
   back_img = love.graphics.newImage("img/darkness.jpg")
 
+  for k, v in pairs( map.layers ) do
+   print(k, v)
+  end
 ----[[
   for y = 1, map.height do
   		for x = 1, map.width do
-  			if map.layers[1].data[y][x] ~= nil then
+  			if map.layers["grass"].data[y][x] ~= nil then
   				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
           table.insert(tiles, ti)
           --print(x)
@@ -152,17 +155,16 @@ function love.update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            hero:move(0,delta.y)
+            hero:move(0,dy)
         end
     end
-    if abs(dy) < 0.11 then dy = 0 end
+    if abs(dy) < 1 then dy = 0 end
 
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
 			--hero:move(0,dy)
-    if dy == 0 then hero.air = true end
-      hero.jetpack_fuel = hero.jetpack_fuel_max
-      hero.air = false
+    hero.jetpack_fuel = hero.jetpack_fuel_max
+    hero.air = false
 		end
 	end
 
@@ -190,7 +192,7 @@ function love.update(dt)
   if (#todo == 0) then
     --print("rsrs")
     hero.air = true
-  end
+  else print("----") end
 
   dxCam, dyCam = xNew - xOld, yNew - yOld
   cam:move(2 * (dxCam),2 * (dyCam))

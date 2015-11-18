@@ -92,10 +92,11 @@ end
 
 function love.update(dt)
 
+
   local xOld, yOld = hero:center()
 
   --local mx, my = love.mouse.getPosition();
-  print(mx, my)
+  print(cam:mousePosition())
 
   todo = {}
 

@@ -102,51 +102,63 @@ function love.update(dt)
 
 	--updateHero(dt)
 
-
-  if (hero.y_speed == 0) then hero.y_speed = hero.y_speed + 0.0001 end
-
   if hero.jetpack_fuel > 0 -- we can still move upwards
 	and love.keyboard.isDown(" ") then -- and we're actually holding space
 		hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
 		hero.y_speed = hero.y_speed + jump_height * (dt / hero.jetpack_fuel_max)
+    hero.air = true
 	end
+
+  hero.flip = false
   if love.keyboard.isDown("right") then
     hero.x_speed = hero.x_speed_max
-  end
-  if love.keyboard.isDown("left") then
+  elseif love.keyboard.isDown("left") then
     hero.x_speed = - hero.x_speed_max
+    hero.flip = true
+  else
+    hero.x_speed = 0
   end
-  if hero.y_speed ~= 0 then -- we're probably jumping
-		hero:move(0, hero.y_speed * dt) -- dt means we wont move at
-		-- different speeds if the game lags
+
+  if hero.y_speed ~= 0 or hero.air == true then -- we're probably jumping
+		hero:move(0, hero.y_speed * dt)
+    noChao:move(0, hero.y_speed * dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
     for shape, delta in pairs(HCC.collisions(hero)) do
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
-          table.insert(todo, shape)
-          dx = dx + delta.x
-          dy = dy + delta.y
+        if (not shape.naoColide) then
+            table.insert(todo, shape)
+            dx = dx + delta.x
+            dy = dy + delta.y
+            hero:move(0,delta.y)
+        end
     end
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
-			hero:move(0,dy)
+			--hero:move(0,dy)
+      noChao:move(0,dy)
       hero.jetpack_fuel = hero.jetpack_fuel_max
+      hero.air = false
 		end
 	end
 
   dx, dy = 0, 0
   hero:move(hero.x_speed * dt, 0)
+  noChao:move(hero.x_speed * dt, 0)
   for shape, delta in pairs(HCC.collisions(hero)) do
         --hero:move(delta.x, delta.y)
         --colidir(dt, hero, delta.x, delta.y)
-        table.insert(todo, shape)
-        dx = dx + delta.x
-        dy = dy + delta.y
+        if (not shape.naoColide) then
+            table.insert(todo, shape)
+            dx = dx + delta.x
+            dy = dy + delta.y
+        end
   end
   if dx < 0 or dx > 0 then
     hero.x_speed = 0
-    hero:move(dx, 0)
+    hero:move(dx/2, 0)
+    noChao:move(dx/2, 0)
   end
 
 
@@ -221,6 +233,8 @@ end
 function setupHero(x,y)
 
 	hero = HCC.rectangle(x,y,32,49)
+  noChao = HCC.rectangle(x,y,5,55)
+  noChao.naoColide = true
 
   hero.jetpack_fuel = 0.3
   hero.jetpack_fuel_max = 0.3
@@ -263,7 +277,7 @@ function love.keyreleased(key)
     end
   end
 end
-
+--[[
 function handleInput(dt)
 
   if love.keyboard.isDown(" ")
@@ -306,7 +320,7 @@ function handleInput(dt)
 
 
 end
-
+]]--
 function updateHero(dt)
 
 

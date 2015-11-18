@@ -51,13 +51,10 @@ function love.load()
 
   back_img = love.graphics.newImage("img/darkness.jpg")
 
-  for k, v in pairs( map.layers ) do
-   print(k, v)
-  end
 ----[[
   for y = 1, map.height do
   		for x = 1, map.width do
-  			if map.layers["grass"].data[y][x] ~= nil then
+  			if map.layers[1].data[y][x] ~= nil then
   				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
           table.insert(tiles, ti)
           --print(x)
@@ -104,7 +101,7 @@ function love.update(dt)
   local xOld, yOld = hero:center()
 
   --local mx, my = love.mouse.getPosition();
-  print(mx, my)
+  --print(mx, my)
 
   todo = {}
 
@@ -134,8 +131,8 @@ function love.update(dt)
     hero.air = true
 	end
 
-  hero.flip = false
   if love.keyboard.isDown("right") then
+    hero.flip = false
     hero.x_speed = hero.x_speed_max
   elseif love.keyboard.isDown("left") then
     hero.x_speed = - hero.x_speed_max
@@ -155,16 +152,17 @@ function love.update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            hero:move(0,dy)
+            hero:move(0,delta.y)
         end
     end
-    if abs(dy) < 1 then dy = 0 end
+    if abs(dy) < 0.11 then dy = 0 end
 
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
 			--hero:move(0,dy)
-    hero.jetpack_fuel = hero.jetpack_fuel_max
-    hero.air = false
+    if dy == 0 then hero.air = true end
+      hero.jetpack_fuel = hero.jetpack_fuel_max
+      hero.air = false
 		end
 	end
 
@@ -192,7 +190,7 @@ function love.update(dt)
   if (#todo == 0) then
     --print("rsrs")
     hero.air = true
-  else print("----") end
+  end
 
   dxCam, dyCam = xNew - xOld, yNew - yOld
   cam:move(2 * (dxCam),2 * (dyCam))
@@ -226,7 +224,7 @@ function love.draw()
   -- debugs stuff
   if debug then
     hero:draw("fill")
-    love.graphics.print(hero.y_speed)
+    print(hero.flip)
   end
 
   --Draw Kat

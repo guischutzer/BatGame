@@ -80,6 +80,16 @@ function love.load()
 
 end
 
+function abs(x)
+  if (x < 0) then return -x end
+  return x
+end
+
+function niceAbs(x,y)
+  if abs(x) > abs(y) then return x end
+  return y
+end
+
 function love.update(dt)
 
   local xOld, yOld = hero:center()
@@ -105,7 +115,7 @@ function love.update(dt)
   if hero.jetpack_fuel > 0 -- we can still move upwards
 	and love.keyboard.isDown(" ") then -- and we're actually holding space
 		hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
-		hero.y_speed = hero.y_speed + jump_height * (dt / hero.jetpack_fuel_max)
+		hero.y_speed = hero.y_speed + 2 * jump_height * (dt / hero.jetpack_fuel_max)
     hero.air = true
 	end
 
@@ -121,7 +131,6 @@ function love.update(dt)
 
   if hero.y_speed ~= 0 or hero.air == true then -- we're probably jumping
 		hero:move(0, hero.y_speed * dt)
-    noChao:move(0, hero.y_speed * dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
     for shape, delta in pairs(HCC.collisions(hero)) do
@@ -134,10 +143,12 @@ function love.update(dt)
             hero:move(0,delta.y)
         end
     end
+    if abs(dy) < 0.11 then dy = 0 end
+
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
 			--hero:move(0,dy)
-      noChao:move(0,dy)
+    if dy == 0 then hero.air = true end
       hero.jetpack_fuel = hero.jetpack_fuel_max
       hero.air = false
 		end
@@ -145,7 +156,6 @@ function love.update(dt)
 
   dx, dy = 0, 0
   hero:move(hero.x_speed * dt, 0)
-  noChao:move(hero.x_speed * dt, 0)
   for shape, delta in pairs(HCC.collisions(hero)) do
         --hero:move(delta.x, delta.y)
         --colidir(dt, hero, delta.x, delta.y)
@@ -155,10 +165,10 @@ function love.update(dt)
             dy = dy + delta.y
         end
   end
+  if abs(dx) < 0.11 then dx = 0 end
   if dx < 0 or dx > 0 then
     hero.x_speed = 0
     hero:move(dx/2, 0)
-    noChao:move(dx/2, 0)
   end
 
 
@@ -169,8 +179,15 @@ function love.update(dt)
   if dxCam > -1 and dxCam < 1 then dxCam = 0 end
   if dyCam > -1 and dyCam < 1 then dyCam = 0 end
 
+  if (#todo == 0) then
+    print("rsrs")
+    hero.air = true
+  end
+
   cam:move(2 * (dxCam),2 * (dyCam))
   par:move(1 * (dxCam),1 * (dyCam))
+
+  print(hero.air)
 
 
 end
@@ -180,7 +197,7 @@ end
 function love.draw()
 
   par:attach()
-  love.graphics.draw(back_img, 0, 0, 0, 4, 4, -40, -40)
+  love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
   par:detach()
 
   cam:attach()
@@ -232,9 +249,7 @@ end
 
 function setupHero(x,y)
 
-	hero = HCC.rectangle(x,y,32,49)
-  noChao = HCC.rectangle(x,y,5,55)
-  noChao.naoColide = true
+	hero = HCC.rectangle(x,y,5,49)
 
   hero.jetpack_fuel = 0.3
   hero.jetpack_fuel_max = 0.3

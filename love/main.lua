@@ -30,6 +30,12 @@ function love.load()
 	-- load the level and bind to variable map
 	map = sti.new("maps/level2.lua")
 
+  --Variables related to Kat invulnerability
+
+  invul = false
+  invul_timer = Timer.new()
+  blink = false
+
   -- Variables related to  animation
   walk_frame = 1 --walk animation frame
   walk_timer = Timer.new()
@@ -45,10 +51,13 @@ function love.load()
 
   back_img = love.graphics.newImage("img/darkness.jpg")
 
+  for k, v in pairs( map.layers ) do
+   print(k, v)
+  end
 ----[[
   for y = 1, map.height do
   		for x = 1, map.width do
-  			if map.layers[1].data[y][x] ~= nil then
+  			if map.layers["grass"].data[y][x] ~= nil then
   				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
           table.insert(tiles, ti)
           --print(x)
@@ -100,7 +109,10 @@ function love.update(dt)
 
   todo = {}
 
+  -- Timers
   walk_timer.update(dt)
+  invul_timer.update(dt)
+
 
   --hero:move(0, 800*dt)
 
@@ -144,17 +156,16 @@ function love.update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            hero:move(0,delta.y)
+            hero:move(0,dy)
         end
     end
-    if abs(dy) < 0.11 then dy = 0 end
+    if abs(dy) < 1 then dy = 0 end
 
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
 			--hero:move(0,dy)
-    if dy == 0 then hero.air = true end
-      hero.jetpack_fuel = hero.jetpack_fuel_max
-      hero.air = false
+    hero.jetpack_fuel = hero.jetpack_fuel_max
+    hero.air = false
 		end
 	end
 
@@ -182,7 +193,7 @@ function love.update(dt)
   if (#todo == 0) then
     --print("rsrs")
     hero.air = true
-  end
+  else print("----") end
 
   dxCam, dyCam = xNew - xOld, yNew - yOld
   cam:move(2 * (dxCam),2 * (dyCam))
@@ -219,23 +230,28 @@ function love.draw()
     love.graphics.print(hero.y_speed)
   end
 
+  --Draw Kat
+if not blink then
   local h_x, h_y = hero:center()
-  if hero.y_speed ~= 0 then
-  	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
-  elseif hero.x_speed == 0 then
-    love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
-    if walk_handle then
-      walk_timer.cancel(walk_handle)
-      walking = false
-      walk_frame = 1
+    if hero.y_speed ~= 0 then
+    	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+    elseif hero.x_speed == 0 then
+      love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+      if walk_handle then
+        walk_timer.cancel(walk_handle)
+        walking = false
+        walk_frame = 1
+      end
+    else
+      if not walking then
+        walk_handle = walk_timer.every(1/12, animTimer)
+        walking = true
+      end
+      love.graphics.draw(walk_img, walk_quad[walk_frame], h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2 , 0, (hero.flip and -1 or 1), 1)
     end
-  else
-    if not walking then
-      walk_handle = walk_timer.every(1/12, animTimer)
-      walking = true
-    end
-    love.graphics.draw(walk_img, walk_quad[walk_frame], h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2 , 0, (hero.flip and -1 or 1), 1)
   end
+
+  --End Draw Kat
 
   cam:detach()
 
@@ -246,7 +262,18 @@ function animTimer()
   walk_frame = walk_frame%7 +1
 end
 
-
+function invul_activate()
+  if invul then return end
+  invul = true
+  local t = 0
+  invul_timer.during(4, function(dt)
+    t = t + dt
+    blink = (t%.2) < .1
+  end, function()
+    invul = false
+    blink = false
+  end)
+end
 
 function setupHero(x,y)
 
@@ -291,6 +318,9 @@ function love.keyreleased(key)
     else
       hardonDebug = false
     end
+
+  elseif key == "i" then
+    invul_activate()
   end
 end
 --[[

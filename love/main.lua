@@ -94,6 +94,9 @@ function love.update(dt)
 
   local xOld, yOld = hero:center()
 
+  --local mx, my = love.mouse.getPosition();
+  print(mx, my)
+
   todo = {}
 
   walk_timer.update(dt)
@@ -174,20 +177,17 @@ function love.update(dt)
 
   local xNew, yNew = hero:center()
 
-  dxCam, dyCam = xNew - xOld, yNew - yOld
-
-  if dxCam > -1 and dxCam < 1 then dxCam = 0 end
-  if dyCam > -1 and dyCam < 1 then dyCam = 0 end
 
   if (#todo == 0) then
-    print("rsrs")
+    --print("rsrs")
     hero.air = true
   end
 
+  dxCam, dyCam = xNew - xOld, yNew - yOld
   cam:move(2 * (dxCam),2 * (dyCam))
   par:move(1 * (dxCam),1 * (dyCam))
 
-  print(hero.air)
+  --print(hero.air)
 
 
 end

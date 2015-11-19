@@ -14,6 +14,7 @@ local HCC = require "HC"
 local Timer = require "hump.timer"
 local Camera = require "hump.camera"
 local Gamestate = require "hump.gamestate"
+local Vector = require "hump.vector-light"
 
 --GAMESTATES
 local menu = {}
@@ -74,6 +75,11 @@ function love.load()
 	setupHero(32,32)
 
 
+
+  sonar = HCC.circle(40,-1,-1)
+  sonar.ativo = false
+
+
   old = {
     x = -1000,
     y = -1000
@@ -100,9 +106,12 @@ function abs(x)
   return x
 end
 
-function niceAbs(x,y)
-  if abs(x) > abs(y) then return x end
-  return y
+function inicializaSonar()
+  sonar.ativo = true
+  local cx, cy = cam:mousePosition()
+  local hx, hy = hero:center()
+  local xs, ys = Vector.normalize(hx - cx /  2 , hy - cy / 2)
+  sonar:moveTo(hx - 40 * xs,hy - 40 *  ys)
 end
 
 function game:update(dt)
@@ -110,7 +119,10 @@ function game:update(dt)
   local xOld, yOld = hero:center()
 
   --local mx, my = love.mouse.getPosition();
+<<<<<<< HEAD
   --print(mx, my)
+=======
+>>>>>>> 0ecaff3a178d2c825ca676c4778e5a4314045120
 
   todo = {}
 
@@ -121,7 +133,7 @@ function game:update(dt)
 
   --hero:move(0, 800*dt)
 
-
+   if (love.mouse.isDown('l') and not sonar.ativo) then inicializaSonar() end
 
   --print(#todo)
 
@@ -219,12 +231,12 @@ function menu:draw()
   love.graphics.print("PRESS SPACE FOR GAMEZ", 0, 600, 0, 6)
 end
 
---DRAW DO PAUSE 
+--DRAW DO PAUSE
 function pause:draw()
 
   local h_x, h_y = hero:center()
 
-  
+
 
   par:attach()
   love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
@@ -285,6 +297,14 @@ function game:draw()
   par:detach()
 
   cam:attach()
+	-- scale everything 2x
+	love.graphics.scale(2,2)
+
+
+  sonar:draw('fill')
+
+
+  if (not sonar.ativo) then love.graphics.line(xOld, yOld, xc / 2, yc / 2) end
   -- scale everything 2x
   love.graphics.scale(2,2)
 

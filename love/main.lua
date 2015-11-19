@@ -64,9 +64,17 @@ function love.load()
 ----[[
   for y = 1, map.height do
   		for x = 1, map.width do
-  			if map.layers[1].data[y][x] ~= nil then
-  				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
-          table.insert(tiles, ti)
+  			if map.layers["grass"].data[y][x] ~= nil then
+          for k, v in pairs(map:getTileProperties("grass", x, y)) do
+            --print(k, v)
+          end
+          --print("-----")
+
+          if map:getTileProperties("grass", x, y) == "solid" then
+    				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
+            print("adicionado")
+            table.insert(tiles, ti)
+          else print("não adicionado") end
           --print(x)
           --print(y)
 			end
@@ -118,7 +126,6 @@ function game:update(dt)
 
   --local mx, my = love.mouse.getPosition();
 
-
   todo = {}
 
   -- Timers
@@ -169,7 +176,8 @@ function game:update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            hero:move(0,delta.y)
+            if delta.y ~= old.y then hero:move(0,delta.y) end
+            old.y = delta.y
         end
     end
     if abs(dy) < 0.11 then dy = 0 end
@@ -192,6 +200,8 @@ function game:update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
+            if delta.x ~= old.x then hero:move(delta.x,0) end
+            old.x = delta.x
         end
   end
   if abs(dx) < 0.11 then dx = 0 end
@@ -256,12 +266,11 @@ function game:draw()
 	map:draw()
   -- draw the hero as a rectangle
 
-  for _,t in pairs(todo) do
-    t:draw('fill')
-  end
-
   -- debugs stuff
   if debug then
+    for _,t in pairs(todo) do
+      t:draw('fill')
+    end
     hero:draw("fill")
     print(hero.flip)
   end

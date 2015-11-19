@@ -81,8 +81,6 @@ function love.load()
   end
 	setupHero(32,32)
 
-  sonar = 0
-
 
   old = {
     x = -1000,
@@ -114,13 +112,20 @@ function abs(x)
   return x
 end
 
+function niceAbs(x,y)
+  if abs(x) > abs(y) then return x end
+  return y
+end
 
 function game:update(dt)
 
-  xOld, yOld = hero:center()
-  xc, yc = cam:mousePosition()
+  local xOld, yOld = hero:center()
 
   --local mx, my = love.mouse.getPosition();
+<<<<<<< HEAD
+  --print(mx, my)
+=======
+>>>>>>> e280ee166a5ea8e1531b7ddb93dd8eba40d7b88b
 
   todo = {}
 
@@ -164,7 +169,6 @@ function game:update(dt)
 		hero:move(0, hero.y_speed * dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
-
     for shape, delta in pairs(HCC.collisions(hero)) do
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
@@ -225,21 +229,71 @@ function game:update(dt)
 end
 
 function menu:draw()
-  for i = 1,100 do
-    for j = 1, 100 do
-      love.graphics.draw(idle_img, 50*i - 100,50*j - 100)
-    end
-  end
-  love.graphics.print("KAT VS THE WORLD", 0, 600, -.5, 8)
+  love.graphics.setBackgroundColor(255, 192, 203)
+  love.graphics.setColor(255,255,255)
+  love.graphics.draw(idle_img, 50 ,50, 0, 20)
+  love.graphics.setColor(72,118,255)
+  love.graphics.print("KAT VS THE WORLD", 0, 0, 0, 8)
+  love.graphics.print("PRESS SPACE FOR GAMEZ", 0, 600, 0, 6)
 end
 
+--DRAW DO PAUSE 
 function pause:draw()
-  for i = 1,100 do
-    for j = 1, 100 do
-      love.graphics.draw(idle_img, 50*i - 100,50*j - 100)
+
+  local h_x, h_y = hero:center()
+
+  
+
+  par:attach()
+  love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
+  par:detach()
+
+  cam:attach()
+  -- scale everything 2x
+  love.graphics.scale(2,2)
+
+  -- draw the level
+  map:draw()
+  -- draw the hero as a rectangle
+
+  for _,t in pairs(todo) do
+    t:draw('fill')
+  end
+
+  -- debugs stuff
+  if debug then
+    hero:draw("fill")
+    print(hero.flip)
+  end
+  --Draw Kat
+  if not blink then
+    if hero.y_speed ~= 0 then
+      love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+    elseif hero.x_speed == 0 then
+      love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+      if walk_handle then
+        walk_timer.cancel(walk_handle)
+        walking = false
+        walk_frame = 1
+      end
+    else
+      if not walking then
+        walk_handle = walk_timer.every(1/12, animTimer)
+        walking = true
+      end
+      love.graphics.draw(walk_img, walk_quad[walk_frame], h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2 , 0, (hero.flip and -1 or 1), 1)
     end
   end
-  love.graphics.print("KAT VS THE PAUSE", 0, 600, -.5, 8)
+
+  --End Draw Kat
+
+  --Draw Filter
+  love.graphics.setColor(0,0,0,200)
+  love.graphics.rectangle("fill", h_x -500, h_y-500, 1000,1000)
+  love.graphics.setColor(255,255,255)
+  love.graphics.print("PAUSE PAUSE PAUSE PAUSE", h_x - 50, h_y-38)
+
+  cam:detach()
 end
 
 function game:draw()
@@ -249,13 +303,11 @@ function game:draw()
   par:detach()
 
   cam:attach()
-	-- scale everything 2x
-	love.graphics.scale(2,2)
+  -- scale everything 2x
+  love.graphics.scale(2,2)
 
-  love.graphics.line(xOld, yOld, xc / 2, yc / 2)
-
-	-- draw the level
-	map:draw()
+  -- draw the level
+  map:draw()
   -- draw the hero as a rectangle
 
   -- debugs stuff
@@ -271,7 +323,7 @@ function game:draw()
 if not blink then
   local h_x, h_y = hero:center()
     if hero.y_speed ~= 0 then
-    	love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
+      love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
     elseif hero.x_speed == 0 then
       love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
       if walk_handle then

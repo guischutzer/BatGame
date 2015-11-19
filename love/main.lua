@@ -38,7 +38,7 @@ function love.load()
   tilesize = 32
 
 	-- load the level and bind to variable map
-	map = sti.new("maps/level2.lua")
+	map = sti.new("maps/level5.lua")
 
   --Variables related to Kat invulnerability
 
@@ -70,7 +70,7 @@ function love.load()
           end
           --print("-----")
 
-          if map:getTileProperties("grass", x, y) ~= "solid" then
+          if setContains(map:getTileProperties("grass", x, y), "solid") then
     				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
             print("adicionado")
             table.insert(tiles, ti)
@@ -111,6 +111,10 @@ function love.load()
   j_Pack = 0.5
   j_Pack_Max = 0.5
 
+end
+
+function setContains(set, key)
+    return set[key] ~= nil
 end
 
 function abs(x)
@@ -329,7 +333,7 @@ end
 
 function setupHero(x,y)
 
-	hero = HCC.rectangle(x,y,5,49)
+	hero = HCC.rectangle(x,y,32,49)
 
   hero.jetpack_fuel = 0.3
   hero.jetpack_fuel_max = 0.3

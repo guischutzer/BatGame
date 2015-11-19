@@ -13,13 +13,22 @@ loader.path = "maps/"
 local HCC = require "HC"
 local Timer = require "hump.timer"
 local Camera = require "hump.camera"
+local Gamestate = require "hump.gamestate"
 
+--GAMESTATES
+local menu = {}
+local game = {}
+local pause = {}
 
 local hero
 local collider
 local allSolidTiles
 
 function love.load()
+
+  --Handles Gamestates
+  Gamestate.registerEvents()
+  Gamestate.switch(menu)
 
   tiles = {}
 
@@ -72,6 +81,8 @@ function love.load()
   end
 	setupHero(32,32)
 
+  sonar = 0
+
 
   old = {
     x = -1000,
@@ -99,15 +110,11 @@ function abs(x)
   return x
 end
 
-function niceAbs(x,y)
-  if abs(x) > abs(y) then return x end
-  return y
-end
 
-function love.update(dt)
+function game:update(dt)
 
-
-  local xOld, yOld = hero:center()
+  xOld, yOld = hero:center()
+  xc, yc = cam:mousePosition()
 
   --local mx, my = love.mouse.getPosition();
 
@@ -154,7 +161,6 @@ function love.update(dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
 
-
     for shape, delta in pairs(HCC.collisions(hero)) do
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
@@ -176,8 +182,6 @@ function love.update(dt)
       hero.air = false
 		end
 	end
-
-
 
   dx, dy = 0, 0
   hero:move(hero.x_speed * dt, 0)
@@ -216,9 +220,25 @@ function love.update(dt)
 
 end
 
+function menu:draw()
+  for i = 1,100 do
+    for j = 1, 100 do
+      love.graphics.draw(idle_img, 50*i - 100,50*j - 100)
+    end
+  end
+  love.graphics.print("KAT VS THE WORLD", 0, 600, -.5, 8)
+end
 
+function pause:draw()
+  for i = 1,100 do
+    for j = 1, 100 do
+      love.graphics.draw(idle_img, 50*i - 100,50*j - 100)
+    end
+  end
+  love.graphics.print("KAT VS THE PAUSE", 0, 600, -.5, 8)
+end
 
-function love.draw()
+function game:draw()
 
   par:attach()
   love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
@@ -227,6 +247,8 @@ function love.draw()
   cam:attach()
 	-- scale everything 2x
 	love.graphics.scale(2,2)
+
+  love.graphics.line(xOld, yOld, xc / 2, yc / 2)
 
 	-- draw the level
 	map:draw()
@@ -288,7 +310,7 @@ end
 
 function setupHero(x,y)
 
-	hero = HCC.rectangle(x,y,40,49)
+	hero = HCC.rectangle(x,y,5,49)
 
   hero.jetpack_fuel = 0.3
   hero.jetpack_fuel_max = 0.3
@@ -312,7 +334,19 @@ function setupHero(x,y)
 
 end
 
-function love.keyreleased(key)
+function menu:keyreleased(key)
+  if key == " " then
+    Gamestate.switch(game)
+  end
+end
+
+function pause:keyreleased(key)
+  if key == "p" then
+    Gamestate.switch(game)
+  end
+end
+
+function game:keyreleased(key)
   if key == " " then
     hero.pode_pular = true
 
@@ -332,6 +366,9 @@ function love.keyreleased(key)
 
   elseif key == "i" then
     invul_activate()
+
+  elseif key == "p" then
+    Gamestate.switch(pause)
   end
 end
 --[[

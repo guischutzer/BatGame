@@ -70,7 +70,7 @@ function love.load()
           end
           --print("-----")
 
-          if map:getTileProperties("grass", x, y) == "solid" then
+          if map:getTileProperties("grass", x, y) ~= "solid" then
     				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
             print("adicionado")
             table.insert(tiles, ti)
@@ -85,7 +85,7 @@ function love.load()
 
 
 
-  sonar = HCC.circle(5,-1,-1)
+  sonar = HCC.circle(40,-1,-1)
   sonar.ativo = false
 
 
@@ -118,6 +118,13 @@ function abs(x)
   return x
 end
 
+function inicializaSonar()
+  sonar.ativo = true
+  local cx, cy = cam:mousePosition()
+  local hx, hy = hero:center()
+  local xs, ys = Vector.normalize(hx - cx /  2 , hy - cy / 2)
+  sonar:moveTo(hx - 40 * xs,hy - 40 *  ys)
+end
 
 function game:update(dt)
 
@@ -135,7 +142,7 @@ function game:update(dt)
 
   --hero:move(0, 800*dt)
 
-  
+   if (love.mouse.isDown('l') and not sonar.ativo) then inicializaSonar() end
 
   --print(#todo)
 
@@ -260,7 +267,7 @@ function game:draw()
   sonar:draw('fill')
 
 
-  love.graphics.line(xOld, yOld, xc / 2, yc / 2)
+  if (not sonar.ativo) then love.graphics.line(xOld, yOld, xc / 2, yc / 2) end
 
 	-- draw the level
 	map:draw()

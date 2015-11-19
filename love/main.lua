@@ -54,9 +54,17 @@ function love.load()
 ----[[
   for y = 1, map.height do
   		for x = 1, map.width do
-  			if map.layers[1].data[y][x] ~= nil then
-  				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
-          table.insert(tiles, ti)
+  			if map.layers["grass"].data[y][x] ~= nil then
+          for k, v in pairs(map:getTileProperties("grass", x, y)) do
+            --print(k, v)
+          end
+          --print("-----")
+
+          if map:getTileProperties("grass", x, y) == "solid" then
+    				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
+            print("adicionado")
+            table.insert(tiles, ti)
+          else print("não adicionado") end
           --print(x)
           --print(y)
 			end
@@ -102,12 +110,6 @@ function love.update(dt)
   local xOld, yOld = hero:center()
 
   --local mx, my = love.mouse.getPosition();
-<<<<<<< HEAD
-  --print(mx, my)
-=======
-  print(hero:center())
-  print(cam:mousePosition())
->>>>>>> 0de74fa0b310c29c41e061c77973ced280f07ad3
 
   todo = {}
 
@@ -152,7 +154,7 @@ function love.update(dt)
 		hero.y_speed = hero.y_speed + gravity * dt
     dx, dy = 0,0
 
-    
+
     for shape, delta in pairs(HCC.collisions(hero)) do
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
@@ -160,7 +162,8 @@ function love.update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            hero:move(0,delta.y)
+            if delta.y ~= old.y then hero:move(0,delta.y) end
+            old.y = delta.y
         end
     end
     if abs(dy) < 0.11 then dy = 0 end
@@ -185,6 +188,8 @@ function love.update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
+            if delta.x ~= old.x then hero:move(delta.x,0) end
+            old.x = delta.x
         end
   end
   if abs(dx) < 0.11 then dx = 0 end
@@ -227,12 +232,11 @@ function love.draw()
 	map:draw()
   -- draw the hero as a rectangle
 
-  for _,t in pairs(todo) do
-    t:draw('fill')
-  end
-
   -- debugs stuff
   if debug then
+    for _,t in pairs(todo) do
+      t:draw('fill')
+    end
     hero:draw("fill")
     print(hero.flip)
   end

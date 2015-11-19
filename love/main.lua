@@ -37,7 +37,7 @@ function love.load()
   tilesize = 32
 
 	-- load the level and bind to variable map
-	map = sti.new("maps/level5.lua")
+	map = sti.new("maps/level2.lua")
 
   --Variables related to Kat invulnerability
 
@@ -63,17 +63,9 @@ function love.load()
 ----[[
   for y = 1, map.height do
   		for x = 1, map.width do
-  			if map.layers["grass"].data[y][x] ~= nil then
-          for k, v in pairs(map:getTileProperties("grass", x, y)) do
-            --print(k, v)
-          end
-          --print("-----")
-
-          if setContains(map:getTileProperties("grass", x, y), "solid") then
-    				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
-            print("adicionado")
-            table.insert(tiles, ti)
-          else print("não adicionado") end
+  			if map.layers[1].data[y][x] ~= nil then
+  				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
+          table.insert(tiles, ti)
           --print(x)
           --print(y)
 			end
@@ -103,10 +95,6 @@ function love.load()
 
 end
 
-function setContains(set, key)
-    return set[key] ~= nil
-end
-
 function abs(x)
   if (x < 0) then return -x end
   return x
@@ -122,10 +110,7 @@ function game:update(dt)
   local xOld, yOld = hero:center()
 
   --local mx, my = love.mouse.getPosition();
-<<<<<<< HEAD
   --print(mx, my)
-=======
->>>>>>> e280ee166a5ea8e1531b7ddb93dd8eba40d7b88b
 
   todo = {}
 
@@ -176,8 +161,7 @@ function game:update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            if delta.y ~= old.y then hero:move(0,delta.y) end
-            old.y = delta.y
+            hero:move(0,delta.y)
         end
     end
     if abs(dy) < 0.11 then dy = 0 end
@@ -200,8 +184,6 @@ function game:update(dt)
             table.insert(todo, shape)
             dx = dx + delta.x
             dy = dy + delta.y
-            if delta.x ~= old.x then hero:move(delta.x,0) end
-            old.x = delta.x
         end
   end
   if abs(dx) < 0.11 then dx = 0 end
@@ -310,11 +292,12 @@ function game:draw()
   map:draw()
   -- draw the hero as a rectangle
 
+  for _,t in pairs(todo) do
+    t:draw('fill')
+  end
+
   -- debugs stuff
   if debug then
-    for _,t in pairs(todo) do
-      t:draw('fill')
-    end
     hero:draw("fill")
     print(hero.flip)
   end
@@ -366,7 +349,7 @@ end
 
 function setupHero(x,y)
 
-	hero = HCC.rectangle(x,y,32,49)
+	hero = HCC.rectangle(x,y,5,49)
 
   hero.jetpack_fuel = 0.3
   hero.jetpack_fuel_max = 0.3

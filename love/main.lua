@@ -14,6 +14,7 @@ local HCC = require "HC"
 local Timer = require "hump.timer"
 local Camera = require "hump.camera"
 local Gamestate = require "hump.gamestate"
+local Vector = require "hump.vector-light"
 
 --GAMESTATES
 local menu = {}
@@ -73,7 +74,14 @@ function love.load()
   end
 	setupHero(32,32)
 
-  sonar = 0
+
+
+
+  sonar = HCC.circle(5,-1,-1)
+  sonar.ativo = false
+
+
+
 
 
   old = {
@@ -120,7 +128,7 @@ function game:update(dt)
 
   --hero:move(0, 800*dt)
 
-
+  
 
   --print(#todo)
 
@@ -237,6 +245,10 @@ function game:draw()
   cam:attach()
 	-- scale everything 2x
 	love.graphics.scale(2,2)
+
+
+  sonar:draw('fill')
+
 
   love.graphics.line(xOld, yOld, xc / 2, yc / 2)
 

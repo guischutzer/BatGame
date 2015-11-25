@@ -56,6 +56,10 @@ function love.load()
   blink = false
 
   titl = love.graphics.newImage("img/titl.png")
+  level_music = love.audio.newSource("music/floresta1.mp3", "static")
+  menu_music = love.audio.newSource("music/Bleh.mp3", "static")
+  level_music:setLooping(true)
+  menu_music:setLooping(true)
 
   -- Variables related to  animation
   walk_frame = 1 --walk animation frame
@@ -83,7 +87,6 @@ function love.load()
             --print("adicionado")
             if setContains(map:getTileProperties("grass", x, y), "oneWay") then
               ti.oneWay = true
-              print("OW")
             end
             table.insert(tiles, ti)
           end
@@ -96,7 +99,6 @@ function love.load()
       if map.layers["moving"].data[y][x] ~= nil then
         local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
         table.insert(moving, Mov(hero, ti))
-        print("FOUND")
       end
 
 		end
@@ -125,6 +127,7 @@ function love.load()
 
   ss = collider:circle(50,1,1)
   s = Sonar(hero, ss)
+  menu_music:play()
 
   --sonar = collider:circle(10, -1, -1)
   --sonar.behavior = parado
@@ -251,7 +254,7 @@ function game:update(dt)
     hero.x_speed = 0
     hero:move(dx/2, 0)
   end
->>>>>>> 04d3f036a7cd52ee138d29521a6db96c4e7f3463
+
 
   for _, mov in pairs(moving) do
     mov:update(dt)
@@ -290,8 +293,6 @@ function pause:draw()
 
   local h_x, h_y = hero:center()
 
-
-
   par:attach()
   love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
   par:detach()
@@ -303,10 +304,6 @@ function pause:draw()
   -- draw the level
   map:draw()
   -- draw the hero as a rectangle
-
-  for _,t in pairs(todo) do
-    t:draw('fill')
-  end
 
   -- debugs stuff
   if debug then
@@ -451,12 +448,15 @@ end
 function menu:keyreleased(key)
   if key == " " then
     Gamestate.switch(game)
+    menu_music:stop()
+    level_music:play()
   end
 end
 
 function pause:keyreleased(key)
   if key == "p" then
     Gamestate.switch(game)
+    level_music:setVolume(0.8)
   end
 end
 
@@ -484,6 +484,7 @@ function game:keyreleased(key)
 
   elseif key == "p" then
     Gamestate.switch(pause)
+    level_music:setVolume(0.4)
   end
 end
 

@@ -82,11 +82,6 @@ function levelLoad()
   for y = 1, map.height do
   		for x = 1, map.width do
   			if map.layers["grass"].data[y][x] ~= nil then
-          for k, v in pairs(map:getTileProperties("grass", x, y)) do
-            --print(k, v)
-          end
-          --print("-----")
-
           if setContains(map:getTileProperties("grass", x, y), "solid") then
     				local ti = collider:rectangle((x-1)*32, (y-1)*32, 32, 32)
             --print("adicionado")
@@ -266,6 +261,7 @@ function game:update(dt)
     hero.x_speed = 0
     hero:move(dx/2, 0)
   end
+>>>>>>> 04d3f036a7cd52ee138d29521a6db96c4e7f3463
 
   for _, mov in pairs(moving) do
     mov:update(dt)
@@ -275,7 +271,6 @@ function game:update(dt)
 
 
   if (#todo == 0) then
-    --print("rsrs")
     hero.air = true
   end
 
@@ -283,12 +278,10 @@ function game:update(dt)
   cam:move(2 * (dxCam),2 * (dyCam))
   par:move(1 * (dxCam),1 * (dyCam))
 
-
   local cx, cy = hero:bbox()
   map:setDrawRange(cx - 500, cy - 400 ,1000, 800)
 
   --print(hero.air)
-
 
 end
 
@@ -380,17 +373,17 @@ function game:draw()
 
   -- debugs stuff
   if debug then
+    print(hero.jetpack_fuel)
     for _,t in pairs(todo) do
       t:draw('fill')
     end
     hero:draw("fill")
-    print(hero.flip)
   end
 
   --Draw Kat
 if not blink then
   local h_x, h_y = hero:center()
-    if hero.y_speed ~= 0 then
+    if hero.air then
       love.graphics.draw(fall_img, h_x - (3/4)*tilesize + (hero.flip and 6/4*tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
     elseif hero.x_speed == 0 then
       love.graphics.draw(idle_img, h_x - tilesize/2 + (hero.flip and tilesize or 0), h_y - 48/2, 0, (hero.flip and -1 or 1), 1)
@@ -442,8 +435,8 @@ function setupHero(x,y)
 
 	hero = collider:rectangle(x,y,32,35)
 
-  hero.jetpack_fuel = 0.3
-  hero.jetpack_fuel_max = 0.1
+  hero.jetpack_fuel = 0.2
+  hero.jetpack_fuel_max = 0.2
 
 	hero.x_speed = 0
   hero.x_acc = 100
@@ -457,6 +450,7 @@ function setupHero(x,y)
   hero.r_wall = false
 
   hero.jump_height = 10
+
   hero.pode_pular = true
 
   hero.flip = false
@@ -479,6 +473,7 @@ end
 function game:keyreleased(key)
   if key == " " then
     hero.pode_pular = true
+    hero.jetpack_fuel = hero.jetpack_fuel_max
 
   elseif key == "b" then
     if debug == false then
@@ -501,50 +496,116 @@ function game:keyreleased(key)
     Gamestate.switch(pause)
   end
 end
---[[
+
 function handleInput(dt)
 
   if love.keyboard.isDown(" ")
-  and hero.pode_pular
-  and hero.air == false then
+  and hero.jetpack_fuel > 0 then -- we can still move upwards
+    if hero.air then
+      hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
+    elseif hero.pode_pular then
       hero.air = true
       hero.pode_pular = false
       hero.y_speed = hero.y_speed_base
+    else
+      hero.y_speed = hero.y_speed + 2 * jump_height * (dt / hero.jetpack_fuel_max)
+    end
   end
 
-	if love.keyboard.isDown("left") then
+  if love.keyboard.isDown("right") then
+    hero.flip = false
+    hero.x_speed = hero.x_speed_max
+  elseif love.keyboard.isDown("left") then
+    hero.x_speed = - hero.x_speed_max
     hero.flip = true
-    if hero.x_speed >= 0 then
-      if hero.x_speed >= hero.x_speed_base then
-        hero.x_speed = -hero.x_speed
-      else
-        hero.x_speed = -hero.x_speed_base
-      end
-    elseif hero.x_speed > -hero.x_speed_max then
-       hero.x_speed = hero.x_speed - (100 * dt)
-    else
-      hero.x_speed = -hero.x_speed_max
-    end
-	elseif love.keyboard.isDown("right") then
-    hero.flip = false -- flag para inverter o desenho
-    if hero.x_speed <= 0 then
-      if hero.x_speed <= -hero.x_speed_base then
-        hero.x_speed = -hero.x_speed
-      else
-        hero.x_speed = hero.x_speed_base
-      end
-    elseif hero.x_speed < hero.x_speed_max then
-       hero.x_speed = hero.x_speed + (100 * dt)
-    else
-       hero.x_speed = hero.x_speed_max
-    end
   else
     hero.x_speed = 0
   end
 
+	-- if love.keyboard.isDown("left") then
+  --   hero.flip = true
+  --   if hero.x_speed >= 0 then
+  --     if hero.x_speed >= hero.x_speed_base then
+  --       hero.x_speed = -hero.x_speed
+  --     else
+  --       hero.x_speed = -hero.x_speed_base
+  --     end
+  --   elseif hero.x_speed > -hero.x_speed_max then
+  --      hero.x_speed = hero.x_speed - (100 * dt)
+  --   else
+  --     hero.x_speed = -hero.x_speed_max
+  --   end
+	-- elseif love.keyboard.isDown("right") then
+  --   hero.flip = false -- flag para inverter o desenho
+  --   if hero.x_speed <= 0 then
+  --     if hero.x_speed <= -hero.x_speed_base then
+  --       hero.x_speed = -hero.x_speed
+  --     else
+  --       hero.x_speed = hero.x_speed_base
+  --     end
+  --   elseif hero.x_speed < hero.x_speed_max then
+  --      hero.x_speed = hero.x_speed + (100 * dt)
+  --   else
+  --      hero.x_speed = hero.x_speed_max
+  --   end
+  -- else
+  --   hero.x_speed = 0
+  -- end
+
 
 end
-]]--
+
+function handleCollisions(dt)
+  if hero.y_speed ~= 0 or hero.air == true then -- we're probably jumping
+		hero:move(0, hero.y_speed * dt)
+		hero.y_speed = hero.y_speed + gravity * dt
+    dx, dy = 0,0
+    for shape, delta in pairs(HCC.collisions(hero)) do
+          --hero:move(delta.x, delta.y)
+          --colidir(dt, hero, delta.x, delta.y)
+        if (not shape.naoColide) then
+            table.insert(todo, shape)
+            dx = dx + delta.x
+            dy = dy + delta.y
+            if delta.y ~= old.y then hero:move(0,delta.y) end
+            old.y = delta.y
+        end
+    end
+    if abs(dy) < 0.11 then dy = 0 end
+
+		if dy < 0 then -- we hit the ground again
+			hero.y_speed = 0
+      hero.air = false
+
+    elseif dy > 0 then
+      hero.y_speed = 0
+			--hero:move(0,dy)
+
+    else
+      hero.air = true
+    end
+	end
+
+  dx, dy = 0, 0
+  hero:move(hero.x_speed * dt, 0)
+  for shape, delta in pairs(HCC.collisions(hero)) do
+        --hero:move(delta.x, delta.y)
+        --colidir(dt, hero, delta.x, delta.y)
+        if (not shape.naoColide) then
+            table.insert(todo, shape)
+            dx = dx + delta.x
+            dy = dy + delta.y
+            if delta.x ~= old.x then hero:move(delta.x,0) end
+            old.x = delta.x
+        end
+  end
+  if abs(dx) < 0.11 then dx = 0 end
+  if dx < 0 or dx > 0 then
+    hero.x_speed = 0
+    hero:move(dx/2, 0)
+  end
+end
+
 function updateHero(dt)
 
 

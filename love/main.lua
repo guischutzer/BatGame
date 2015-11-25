@@ -109,13 +109,11 @@ function levelLoad()
       if map.layers["moving"].data[y][x] ~= nil then
         local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
         table.insert(moving, Mov(hero, ti, true))
-        print("FOUND")
       end
 
       if map.layers["moving2"].data[y][x] ~= nil then
         local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
         table.insert(moving, Mov(hero, ti, false))
-        print("FOUND")
       end
 
 		end

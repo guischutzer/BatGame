@@ -24,6 +24,7 @@ local Vector = require "hump.vector-light"
 local menu = {}
 local game = {}
 local pause = {}
+local intro = {}
 
 local hero
 
@@ -32,6 +33,15 @@ local allSolidTiles
 local moving = {}
 
 function love.load()
+  levelLoad()
+end
+
+function levelLoad()
+
+  introcont = 0
+
+  intro_timer = Timer.new()
+
 
   collider = HCC.new()
 
@@ -98,7 +108,14 @@ function love.load()
 
       if map.layers["moving"].data[y][x] ~= nil then
         local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
-        table.insert(moving, Mov(hero, ti))
+        table.insert(moving, Mov(hero, ti, true))
+        print("FOUND")
+      end
+
+      if map.layers["moving2"].data[y][x] ~= nil then
+        local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
+        table.insert(moving, Mov(hero, ti, false))
+        print("FOUND")
       end
 
 		end
@@ -138,6 +155,32 @@ function love.load()
 
 end
 
+function intro:enter()
+  introcont = 0
+  intro_timer.every(9, function() introcont = introcont + 1 end, 3)
+  font = love.graphics.setNewFont( 30 )
+end
+
+function intro:draw()
+  if introcont == 0 then
+    love.graphics.printf("Kat era uma vampira rockeira, vivendo em seu belo castelo, fazendo coisas de vampira.", 250, 200, 500)
+  elseif introcont == 1 then
+    love.graphics.printf("Até que em um fatídico dia, quando ia dar um passeio pela floresta abaixo, uma bruxa muito maligna apareceu e colocou uma maldição em sua vampiresca pessoa.", 250, 200, 500)
+  elseif introcont == 2 then
+    love.graphics.printf("Kat ficou presa em estado de morcego, e jogada para fora do castelo. Sozinha e com medo, cabe a ela tentar voltar para o castelo e derrotar a bruxa do mau...", 250, 200, 500)
+    end
+end
+
+function intro:update(dt)
+  intro_timer.update(dt)
+  if introcont == 3 then
+    menu_music:pause()
+    level_music:play()
+    Gamestate.switch(game)
+  end
+end
+
+
 function setContains(set, key)
     return set[key] ~= nil
 end
@@ -153,12 +196,13 @@ function min(x,y)
 end
 
 
+
 function game:update(dt)
 
   s:update(dt)
   for i, j in pairs(collider:collisions(s.shape)) do
     --s.shape:move(j.x, j.y)
-    s:colidiu()
+    if not i.oneWay then s:colidiu() end
   end
 
   xOld, yOld = hero:center()
@@ -215,7 +259,7 @@ function game:update(dt)
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
           table.insert(todo, shape)
-          if shape.oneWay and hero.y_speed < 0 then delta.y = 0 end
+          if shape.oneWay and hero.y_speed < 100 then delta.y = 0 end
           dx = dx + delta.x
           dy = dy + delta.y
           if delta.y ~= old.y then hero:move(0,delta.y) end
@@ -243,7 +287,7 @@ function game:update(dt)
         --hero:move(delta.x, delta.y)
         --colidir(dt, hero, delta.x, delta.y)
           table.insert(todo, shape)
-          if (shape.oneWay) and hero.y_speed < 0 then delta.x = 0 end
+          if (shape.oneWay) and hero.y_speed < 100 then delta.x = 0 end
           dx = dx + delta.x
           dy = dy + delta.y
           if delta.x ~= old.x then hero:move(delta.x,0) end
@@ -254,7 +298,6 @@ function game:update(dt)
     hero.x_speed = 0
     hero:move(dx/2, 0)
   end
-
 
   for _, mov in pairs(moving) do
     mov:update(dt)
@@ -344,7 +387,7 @@ end
 function game:draw()
 
   par:attach()
-  love.graphics.draw(back_img, -450, -450, 0, 4, 3, -40, -40)
+  love.graphics.draw(back_img, -450, -450, 0, 4, 2, -40, -40)
   par:detach()
 
   cam:attach()
@@ -447,9 +490,8 @@ end
 
 function menu:keyreleased(key)
   if key == " " then
-    Gamestate.switch(game)
-    menu_music:stop()
-    level_music:play()
+    Gamestate.switch(intro)
+
   end
 end
 

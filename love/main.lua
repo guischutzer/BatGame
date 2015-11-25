@@ -32,6 +32,10 @@ local allSolidTiles
 local moving = {}
 
 function love.load()
+  levelLoad()
+end
+
+function levelLoad()
 
   collider = HCC.new()
 
@@ -100,7 +104,13 @@ function love.load()
 
       if map.layers["moving"].data[y][x] ~= nil then
         local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
-        table.insert(moving, Mov(hero, ti))
+        table.insert(moving, Mov(hero, ti, true))
+        print("FOUND")
+      end
+
+      if map.layers["moving2"].data[y][x] ~= nil then
+        local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
+        table.insert(moving, Mov(hero, ti, false))
         print("FOUND")
       end
 
@@ -160,7 +170,7 @@ function game:update(dt)
   s:update(dt)
   for i, j in pairs(collider:collisions(s.shape)) do
     --s.shape:move(j.x, j.y)
-    s:colidiu()
+    if not i.oneWay then s:colidiu() end
   end
 
   xOld, yOld = hero:center()
@@ -217,7 +227,7 @@ function game:update(dt)
           --hero:move(delta.x, delta.y)
           --colidir(dt, hero, delta.x, delta.y)
           table.insert(todo, shape)
-          if shape.oneWay and hero.y_speed < 0 then delta.y = 0 end
+          if shape.oneWay and hero.y_speed < 100 then delta.y = 0 end
           dx = dx + delta.x
           dy = dy + delta.y
           if delta.y ~= old.y then hero:move(0,delta.y) end
@@ -245,7 +255,7 @@ function game:update(dt)
         --hero:move(delta.x, delta.y)
         --colidir(dt, hero, delta.x, delta.y)
           table.insert(todo, shape)
-          if (shape.oneWay) and hero.y_speed < 0 then delta.x = 0 end
+          if (shape.oneWay) and hero.y_speed < 100 then delta.x = 0 end
           dx = dx + delta.x
           dy = dy + delta.y
           if delta.x ~= old.x then hero:move(delta.x,0) end
@@ -354,7 +364,7 @@ end
 function game:draw()
 
   par:attach()
-  love.graphics.draw(back_img, -450, -450, 0, 4, 3, -40, -40)
+  love.graphics.draw(back_img, -450, -450, 0, 4, 2, -40, -40)
   par:detach()
 
   cam:attach()

@@ -37,10 +37,13 @@ function love.load()
 end
 
 function levelLoad()
+<<<<<<< HEAD
 
   introcont = 0
 
   intro_timer = Timer.new()
+=======
+>>>>>>> 3229aa872c74f26b1db506d4f5242512065dfbc0
 
   collider = HCC.new()
 

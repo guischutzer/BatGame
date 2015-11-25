@@ -25,6 +25,7 @@ local menu = {}
 local game = {}
 local pause = {}
 local intro = {}
+local fini = {}
 
 local hero
 
@@ -154,6 +155,7 @@ end
 function intro:enter()
   img1 = love.graphics.newImage("img/img1.jpg")
   img2 = love.graphics.newImage("img/img2.jpg")
+  img3 = love.graphics.newImage("img/img3.jpg")
   introcont = 0
   intro_timer.every(4.5 , function() introcont = introcont + 1 end, 5)
   font = love.graphics.setNewFont( 30 )
@@ -167,9 +169,17 @@ function intro:draw()
     love.graphics.draw(img2,0,0,0,1.3,1.3)
     love.graphics.printf("Até que em um fatídico dia, quando ia dar um passeio pela floresta abaixo para fazer coisas maneiras, uma bruxa muito maligna apareceu e colocou uma maldição em sua vampiresca pessoa.", 50, 650, 900,"center")
   elseif introcont == 3 or introcont == 4 then
-    love.graphics.printf("Kat ficou presa em estado de morcego, e jogada para fora do castelo. Sozinha e com medo, cabe a ela tentar voltar para o castelo e derrotar a bruxa maléfica...", 250, 200, 500, "center")
+    love.graphics.draw(img3,0,0,0,1.3,1.3)
+    love.graphics.printf("Kat ficou presa em estado de morcego, e jogada para fora do castelo. Sozinha e com medo, cabe a ela tentar voltar para o castelo e derrotar a bruxa maléfica...", 220, 620, 600, "center")
     end
 end
+function fini.enter()
+    font = love.graphics.setNewFont( 100 )
+end
+
+function fini:draw()
+  love.graphics.printf("O FIM........?", 50,50,1000)
+  end
 
 function intro:update(dt)
   intro_timer.update(dt)
@@ -538,6 +548,8 @@ function game:keyreleased(key)
 
   elseif key == "p" then
     Gamestate.switch(pause)
+  elseif key == "l" then
+    Gamestate.switch(fini)
   end
 end
 

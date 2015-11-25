@@ -25,6 +25,7 @@ local menu = {}
 local game = {}
 local pause = {}
 local intro = {}
+local fini = {}
 
 local hero
 
@@ -66,10 +67,6 @@ function levelLoad()
   blink = false
 
   titl = love.graphics.newImage("img/titl.png")
-  level_music = love.audio.newSource("music/floresta1.mp3", "static")
-  menu_music = love.audio.newSource("music/Bleh.mp3", "static")
-  level_music:setLooping(true)
-  menu_music:setLooping(true)
 
   -- Variables related to  animation
   walk_frame = 1 --walk animation frame
@@ -97,6 +94,7 @@ function levelLoad()
             --print("adicionado")
             if setContains(map:getTileProperties("grass", x, y), "oneWay") then
               ti.oneWay = true
+              print("OW")
             end
             table.insert(tiles, ti)
           end
@@ -142,7 +140,6 @@ function levelLoad()
 
   ss = collider:circle(50,1,1)
   s = Sonar(hero, ss)
-  menu_music:play()
 
   --sonar = collider:circle(10, -1, -1)
   --sonar.behavior = parado
@@ -154,27 +151,48 @@ function levelLoad()
 end
 
 function intro:enter()
+  img1 = love.graphics.newImage("img/img1.jpg")
+  img2 = love.graphics.newImage("img/img2.jpg")
+  img3 = love.graphics.newImage("img/img3.jpg")
   introcont = 0
-  intro_timer.every(9, function() introcont = introcont + 1 end, 3)
+  intro_timer.every(4.5 , function() introcont = introcont + 1 end, 5)
   font = love.graphics.setNewFont( 30 )
 end
 
 function intro:draw()
   if introcont == 0 then
-    love.graphics.printf("Kat era uma vampira rockeira, vivendo em seu belo castelo, fazendo coisas de vampira.", 250, 200, 500)
-  elseif introcont == 1 then
-    love.graphics.printf("Até que em um fatídico dia, quando ia dar um passeio pela floresta abaixo, uma bruxa muito maligna apareceu e colocou uma maldição em sua vampiresca pessoa.", 250, 200, 500)
-  elseif introcont == 2 then
-    love.graphics.printf("Kat ficou presa em estado de morcego, e jogada para fora do castelo. Sozinha e com medo, cabe a ela tentar voltar para o castelo e derrotar a bruxa do mau...", 250, 200, 500)
+    love.graphics.draw(img1,0,0,0,1.3,1.3)
+    love.graphics.printf("Kat era uma vampira rockeira, vivendo em seu belo castelo, fazendo coisas de vampira.", 210, 200, 500)
+  elseif introcont == 1 or introcont == 2 then
+    love.graphics.draw(img2,0,0,0,1.3,1.3)
+    love.graphics.printf("Até que em um fatídico dia, quando ia dar um passeio pela floresta abaixo para fazer coisas maneiras, uma bruxa muito maligna apareceu e colocou uma maldição em sua vampiresca pessoa.", 50, 650, 900,"center")
+  elseif introcont == 3 or introcont == 4 then
+    love.graphics.draw(img3,0,0,0,1.3,1.3)
+    love.graphics.printf("Kat ficou presa em estado de morcego, e jogada para fora do castelo. Sozinha e com medo, cabe a ela tentar voltar para o castelo e derrotar a bruxa maléfica...", 220, 620, 600, "center")
     end
 end
+function fini.enter()
+    font = love.graphics.setNewFont( 100 )
+end
+
+function fini:draw()
+  love.graphics.printf("O FIM........?", 50,50,1000)
+  end
 
 function intro:update(dt)
   intro_timer.update(dt)
-  if introcont == 3 then
-    menu_music:pause()
-    level_music:play()
-    Gamestate.switch(game)
+  if introcont == 5 then
+        Gamestate.switch(game)
+  end
+end
+
+function intro:keyreleased(key, code)
+  if key then
+    if introcont < 1 then
+      introcont = introcont + 1
+    else
+      introcont = introcont + 2
+    end
   end
 end
 
@@ -334,6 +352,8 @@ function pause:draw()
 
   local h_x, h_y = hero:center()
 
+
+
   par:attach()
   love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
   par:detach()
@@ -345,6 +365,10 @@ function pause:draw()
   -- draw the level
   map:draw()
   -- draw the hero as a rectangle
+
+  for _,t in pairs(todo) do
+    t:draw('fill')
+  end
 
   -- debugs stuff
   if debug then
@@ -489,14 +513,12 @@ end
 function menu:keyreleased(key)
   if key == " " then
     Gamestate.switch(intro)
-
   end
 end
 
 function pause:keyreleased(key)
   if key == "p" then
     Gamestate.switch(game)
-    level_music:setVolume(0.8)
   end
 end
 
@@ -524,7 +546,8 @@ function game:keyreleased(key)
 
   elseif key == "p" then
     Gamestate.switch(pause)
-    level_music:setVolume(0.4)
+  elseif key == "l" then
+    Gamestate.switch(fini)
   end
 end
 

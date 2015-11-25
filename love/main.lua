@@ -55,6 +55,8 @@ function love.load()
   invul_timer = Timer.new()
   blink = false
 
+  titl = love.graphics.newImage("img/titl.png")
+
   -- Variables related to  animation
   walk_frame = 1 --walk animation frame
   walk_timer = Timer.new()
@@ -281,12 +283,13 @@ function game:update(dt)
 end
 
 function menu:draw()
-  love.graphics.setBackgroundColor(255, 192, 203)
-  love.graphics.setColor(255,255,255)
-  love.graphics.draw(idle_img, 50 ,50, 0, 20)
-  love.graphics.setColor(72,118,255)
-  love.graphics.print("KAT VS THE WORLD", 0, 0, 0, 8)
-  love.graphics.print("PRESS SPACE FOR GAMEZ", 0, 600, 0, 6)
+  --love.graphics.setBackgroundColor(255, 192, 203)
+  --love.graphics.setColor(255,255,255)
+  --love.graphics.draw(idle_img, 50 ,50, 0, 20)
+  --love.graphics.setColor(72,118,255)
+  --love.graphics.print("KAT VS THE WORLD", 0, 0, 0, 8)
+  --love.graphics.print("PRESS SPACE FOR GAMEZ", 0, 600, 0, 6)
+  love.graphics.draw(titl, 0, 0)
 end
 
 --DRAW DO PAUSE
@@ -351,7 +354,7 @@ end
 function game:draw()
 
   par:attach()
-  love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
+  love.graphics.draw(back_img, -450, -450, 0, 4, 3, -40, -40)
   par:detach()
 
   cam:attach()

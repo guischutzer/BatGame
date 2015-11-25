@@ -9,14 +9,18 @@ Mov = Class{
     init = function(self, hero, shape)
         self.shape = shape
         self.hero = hero
-        self.v = 100
+        self.v = 200
+        self.amplitude = 500
         self.moved = 0
+        self.img = love.graphics.newImage("img/plat.png")
         --self.img = love.graphics.newImage("img/sonar.png")
     end;
 }
 
 function Mov:draw()
-  self.shape:draw('fill')
+  --self.shape:draw('fill')
+  local cx, cy = self.shape:bbox()
+  love.graphics.draw(self.img, cx, cy)
 end
 
 
@@ -28,5 +32,5 @@ function Mov:update(dt)
   end
   self.moved = self.moved + delta
   if self.moved < 0 and delta < 0 then self.v = 0 - self.v end
-  if self.moved > 650 and delta > 0 then self.v = 0 - self.v end
+  if self.moved > self.amplitude and delta > 0 then self.v = 0 - self.v end
 end

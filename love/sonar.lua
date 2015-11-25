@@ -11,8 +11,9 @@ Sonar = Class{
         self.ativo = false
         self.retorno = false
         self.hero = hero
-        self.v = 650
+        self.v = 900
         self.t = 0
+        self.lifespan = 0.75
         self.img = love.graphics.newImage("img/sonar.png")
     end;
 }
@@ -60,7 +61,7 @@ function Sonar:avancar(dt)
   self.t = self.t + dt
   local sx, sy = self.shape:center()
   local hx, hy = self.hero:center()
-  if self.t > 1 then
+  if self.t > self.lifespan then
     --print("OPOPO")
     self:resetar()
   end

@@ -24,6 +24,7 @@ local Vector = require "hump.vector-light"
 local menu = {}
 local game = {}
 local pause = {}
+local intro = {}
 
 local hero
 
@@ -32,6 +33,10 @@ local allSolidTiles
 local moving = {}
 
 function love.load()
+
+  introcont = 0
+
+  intro_timer = Timer.new()
 
   collider = HCC.new()
 
@@ -135,6 +140,30 @@ function love.load()
 
 end
 
+function intro:enter()
+  introcont = 0
+  intro_timer.every(9, function() introcont = introcont + 1 end, 3)
+  font = love.graphics.setNewFont( 30 )
+end
+
+function intro:draw()
+  if introcont == 0 then
+    love.graphics.printf("Kat era uma vampira rockeira, vivendo em seu belo castelo, fazendo coisas de vampira.", 250, 200, 500)
+  elseif introcont == 1 then
+    love.graphics.printf("Até que em um fatídico dia, quando ia dar um passeio pela floresta abaixo, uma bruxa muito maligna apareceu e colocou uma maldição em sua vampiresca pessoa.", 250, 200, 500)
+  elseif introcont == 2 then
+    love.graphics.printf("Kat ficou presa em estado de morcego, e jogada para fora do castelo. Sozinha e com medo, cabe a ela tentar voltar para o castelo e derrotar a bruxa do mau...", 250, 200, 500)
+    end
+end
+
+function intro:update(dt)
+  intro_timer.update(dt)
+  if introcont == 3 then
+        Gamestate.switch(game)
+  end
+end
+
+
 function setContains(set, key)
     return set[key] ~= nil
 end
@@ -148,6 +177,7 @@ function min(x,y)
   if (x < y) then return x end
   return y
 end
+
 
 
 function game:update(dt)
@@ -251,7 +281,6 @@ function game:update(dt)
     hero.x_speed = 0
     hero:move(dx/2, 0)
   end
->>>>>>> 04d3f036a7cd52ee138d29521a6db96c4e7f3463
 
   for _, mov in pairs(moving) do
     mov:update(dt)
@@ -450,7 +479,7 @@ end
 
 function menu:keyreleased(key)
   if key == " " then
-    Gamestate.switch(game)
+    Gamestate.switch(intro)
   end
 end
 

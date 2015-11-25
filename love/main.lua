@@ -2,6 +2,10 @@
 --  Platformer Tutorial
 --
 
+local name = require "sonar"
+local name = require "moving"
+
+
 local loader = require "AdvTiledLoader/Loader"
 local sti = require "sti"
 
@@ -14,6 +18,7 @@ local HCC = require "HC"
 local Timer = require "hump.timer"
 local Camera = require "hump.camera"
 local Gamestate = require "hump.gamestate"
+local Vector = require "hump.vector-light"
 
 --GAMESTATES
 local menu = {}
@@ -21,10 +26,14 @@ local game = {}
 local pause = {}
 
 local hero
+
 local collider
 local allSolidTiles
+local moving = {}
 
 function love.load()
+
+  collider = HCC.new()
 
   --Handles Gamestates
   Gamestate.registerEvents()
@@ -39,11 +48,14 @@ function love.load()
 	-- load the level and bind to variable map
 	map = sti.new("maps/level5.lua")
 
+
   --Variables related to Kat invulnerability
 
   invul = false
   invul_timer = Timer.new()
   blink = false
+
+  titl = love.graphics.newImage("img/titl.png")
 
   -- Variables related to  animation
   walk_frame = 1 --walk animation frame
@@ -54,6 +66,8 @@ function love.load()
   fall_img = love.graphics.newImage("img/fall.png")
   walk_quad = {}
   --walking frames
+	setupHero(32,32)
+
   for i = 0,7 do
     walk_quad[i] = love.graphics.newQuad(1+33*i, 0, tilesize, 49, walk_img:getWidth(), walk_img:getHeight())
   end
@@ -65,13 +79,28 @@ function love.load()
   		for x = 1, map.width do
   			if map.layers["grass"].data[y][x] ~= nil then
           if setContains(map:getTileProperties("grass", x, y), "solid") then
-    				local ti = HCC.rectangle((x-1)*32, (y-1)*32, 32, 32)
+    				local ti = collider:rectangle((x-1)*32, (y-1)*32, 32, 32)
+            --print("adicionado")
+            if setContains(map:getTileProperties("grass", x, y), "oneWay") then
+              ti.oneWay = true
+              print("OW")
+            end
             table.insert(tiles, ti)
           end
+          --else print("não adicionado") end
+          --print(x)
+          --print(y)
+
 			end
+
+      if map.layers["moving"].data[y][x] ~= nil then
+        local ti = collider:rectangle((x-1)*32, (y-1)*32, 64, 32)
+        table.insert(moving, Mov(hero, ti))
+        print("FOUND")
+      end
+
 		end
   end
-	setupHero(32,32)
 
 
   old = {
@@ -93,6 +122,17 @@ function love.load()
   j_Pack = 0.5
   j_Pack_Max = 0.5
 
+
+  ss = collider:circle(50,1,1)
+  s = Sonar(hero, ss)
+
+  --sonar = collider:circle(10, -1, -1)
+  --sonar.behavior = parado
+  --sonar.ativar = ativaSonar
+  --sonar.ativo = false
+
+  --sonar.kek = iniciar
+
 end
 
 function setContains(set, key)
@@ -104,14 +144,23 @@ function abs(x)
   return x
 end
 
-function niceAbs(x,y)
-  if abs(x) > abs(y) then return x end
+function min(x,y)
+  if (x < y) then return x end
   return y
 end
 
+
 function game:update(dt)
 
-  local xOld, yOld = hero:center()
+  s:update(dt)
+  for i, j in pairs(collider:collisions(s.shape)) do
+    --s.shape:move(j.x, j.y)
+    s:colidiu()
+  end
+
+  xOld, yOld = hero:center()
+  mx, my = cam:mousePosition()
+  mx, my = mx / 2, my / 2
 
   --local mx, my = love.mouse.getPosition();
 
@@ -124,6 +173,12 @@ function game:update(dt)
 
   --hero:move(0, 800*dt)
 
+  if love.mouse.isDown("l") and not s.ativo then
+    s:ativar(xOld, yOld, mx, my)
+  end
+
+  --print(#todo)
+
 	-- do all the input and movement
 
 	--handleInput(dt)
@@ -132,10 +187,75 @@ function game:update(dt)
 
 	--updateHero(dt)
 
-  handleInput(dt)
+  if hero.jetpack_fuel > 0 -- we can still move upwards
+	and love.keyboard.isDown(" ") then -- and we're actually holding space
+		hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
+		hero.y_speed = hero.y_speed + jump_height * (dt / hero.jetpack_fuel_max)
+    hero.air = true
+	end
 
-  handleCollisions(dt)
+  if love.keyboard.isDown("d") then
+    hero.flip = false
+    hero.x_speed = hero.x_speed_max
+  elseif love.keyboard.isDown("a") then
+    hero.x_speed = - hero.x_speed_max
+    hero.flip = true
+  else
+    hero.x_speed = 0
+  end
 
+  if hero.y_speed ~= 0 or hero.air == true then -- we're probably jumping
+		hero:move(0, hero.y_speed * dt)
+		hero.y_speed = hero.y_speed + gravity * dt
+    dx, dy = 0,0
+    for shape, delta in pairs(collider:collisions(hero)) do
+          --hero:move(delta.x, delta.y)
+          --colidir(dt, hero, delta.x, delta.y)
+          table.insert(todo, shape)
+          if shape.oneWay and hero.y_speed < 0 then delta.y = 0 end
+          dx = dx + delta.x
+          dy = dy + delta.y
+          if delta.y ~= old.y then hero:move(0,delta.y) end
+          old.y = delta.y
+    end
+    if abs(dy) < 0.11 then dy = 0 end
+
+
+    if dy > 0 then
+      hero.y_speed = 1
+    end
+
+		if dy < 0 then -- we hit the ground again
+			hero.y_speed = 0
+			--hero:move(0,dy)
+    if dy == 0 then hero.air = true end
+      hero.jetpack_fuel = hero.jetpack_fuel_max
+      hero.air = false
+		end
+	end
+
+  dx, dy = 0, 0
+  hero:move(hero.x_speed * dt, 0)
+  for shape, delta in pairs(collider:collisions(hero)) do
+        --hero:move(delta.x, delta.y)
+        --colidir(dt, hero, delta.x, delta.y)
+          table.insert(todo, shape)
+          if (shape.oneWay) and hero.y_speed < 0 then delta.x = 0 end
+          dx = dx + delta.x
+          dy = dy + delta.y
+          if delta.x ~= old.x then hero:move(delta.x,0) end
+          old.x = delta.x
+  end
+  if abs(dx) < 0.11 then dx = 0 end
+  if dx < 0 or dx > 0 then
+    hero.x_speed = 0
+    hero:move(dx/2, 0)
+  end
+>>>>>>> 04d3f036a7cd52ee138d29521a6db96c4e7f3463
+
+  for _, mov in pairs(moving) do
+    mov:update(dt)
+  end
 
   local xNew, yNew = hero:center()
 
@@ -148,15 +268,21 @@ function game:update(dt)
   cam:move(2 * (dxCam),2 * (dyCam))
   par:move(1 * (dxCam),1 * (dyCam))
 
+  local cx, cy = hero:bbox()
+  map:setDrawRange(cx - 500, cy - 400 ,1000, 800)
+
+  --print(hero.air)
+
 end
 
 function menu:draw()
-  love.graphics.setBackgroundColor(255, 192, 203)
-  love.graphics.setColor(255,255,255)
-  love.graphics.draw(idle_img, 50 ,50, 0, 20)
-  love.graphics.setColor(72,118,255)
-  love.graphics.print("KAT VS THE WORLD", 0, 0, 0, 8)
-  love.graphics.print("PRESS SPACE FOR GAMEZ", 0, 600, 0, 6)
+  --love.graphics.setBackgroundColor(255, 192, 203)
+  --love.graphics.setColor(255,255,255)
+  --love.graphics.draw(idle_img, 50 ,50, 0, 20)
+  --love.graphics.setColor(72,118,255)
+  --love.graphics.print("KAT VS THE WORLD", 0, 0, 0, 8)
+  --love.graphics.print("PRESS SPACE FOR GAMEZ", 0, 600, 0, 6)
+  love.graphics.draw(titl, 0, 0)
 end
 
 --DRAW DO PAUSE
@@ -221,7 +347,7 @@ end
 function game:draw()
 
   par:attach()
-  love.graphics.draw(back_img, 0, 0, 0, 4, 2, -40, -40)
+  love.graphics.draw(back_img, -450, -450, 0, 4, 3, -40, -40)
   par:detach()
 
   cam:attach()
@@ -229,8 +355,11 @@ function game:draw()
   love.graphics.scale(2,2)
 
   -- draw the level
-  map:draw()
+  map:drawLayer(map.layers["grass"])
   -- draw the hero as a rectangle
+  for _, mov in pairs(moving) do
+    mov:draw()
+  end
 
   -- debugs stuff
   if debug then
@@ -264,6 +393,12 @@ if not blink then
 
   --End Draw Kat
 
+
+  if not s.ativo and debug then love.graphics.line(xOld, yOld, mx, my) end
+
+  --s.shape:draw('fill')
+  s:draw()
+
   cam:detach()
 
 
@@ -288,7 +423,7 @@ end
 
 function setupHero(x,y)
 
-	hero = HCC.rectangle(x,y,32,49)
+	hero = collider:rectangle(x,y,32,35)
 
   hero.jetpack_fuel = 0.2
   hero.jetpack_fuel_max = 0.2
@@ -304,7 +439,8 @@ function setupHero(x,y)
   hero.l_wall = false
   hero.r_wall = false
 
-  hero.jump_height = 50
+  hero.jump_height = 10
+
   hero.pode_pular = true
 
   hero.flip = false

@@ -249,24 +249,6 @@ function game:update(dt)
 
   --updateHero(dt)
 
-
-  -- if hero.jetpack_fuel > 0 -- we can still move upwards
-	-- and love.keyboard.isDown(" ") then -- and we're actually holding space
-	-- 	hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
-	-- 	hero.y_speed = hero.y_speed + jump_height * (dt / hero.jetpack_fuel_max)
-  --   hero.air = true
-	-- end
-  --
-  -- if love.keyboard.isDown("d") then
-  --   hero.flip = false
-  --   hero.x_speed = hero.x_speed_max
-  -- elseif love.keyboard.isDown("a") then
-  --   hero.x_speed = - hero.x_speed_max
-  --   hero.flip = true
-  -- else
-  --   hero.x_speed = 0
-  -- end
-
   if hero.y_speed ~= 0 or hero.air == true then -- we're probably jumping
 		hero:move(0, hero.y_speed * dt)
 		hero.y_speed = hero.y_speed + gravity * dt
@@ -661,19 +643,4 @@ function handleCollisions(dt)
     hero.x_speed = 0
     hero:move(dx/2, 0)
   end
-end
-
-function updateHero(dt)
-
-
-  if hero.air == true then -- we're falling
-    hero.pode_pular = false
-    hero.y_speed = hero.y_speed + gravity * dt
-    hero:move(0, hero.y_speed*dt)
-  end
-
-  hero.air = true
-
-  hero:move(hero.x_speed*dt, 0)
-
 end

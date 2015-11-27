@@ -94,7 +94,6 @@ function levelLoad()
             --print("adicionado")
             if setContains(map:getTileProperties("grass", x, y), "oneWay") then
               ti.oneWay = true
-              print("OW")
             end
             table.insert(tiles, ti)
           end
@@ -127,13 +126,13 @@ function levelLoad()
   x_history = {0, 0, 0, 0}
   y_history = {0, 0, 0, 0}
 
-  gravity = (hero.y_speed_base^2)/(2 * hero.jump_height)
+	jump_height = 80
+  gravity = (hero.y_speed_base^2)/(2 * jump_height)
+
   i = 0
   cam = Camera(hero:center())
   par = Camera(hero:center())
 
-  gravity = 400
-	jump_height = -300
   j_Pack = 0.5
   j_Pack_Max = 0.5
 
@@ -244,28 +243,29 @@ function game:update(dt)
 
 	-- do all the input and movement
 
-	--handleInput(dt)
+	 handleInput(dt)
 
 	-- update the collision detection
 
-	--updateHero(dt)
+  --updateHero(dt)
 
-  if hero.jetpack_fuel > 0 -- we can still move upwards
-	and love.keyboard.isDown(" ") then -- and we're actually holding space
-		hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
-		hero.y_speed = hero.y_speed + jump_height * (dt / hero.jetpack_fuel_max)
-    hero.air = true
-	end
 
-  if love.keyboard.isDown("d") then
-    hero.flip = false
-    hero.x_speed = hero.x_speed_max
-  elseif love.keyboard.isDown("a") then
-    hero.x_speed = - hero.x_speed_max
-    hero.flip = true
-  else
-    hero.x_speed = 0
-  end
+  -- if hero.jetpack_fuel > 0 -- we can still move upwards
+	-- and love.keyboard.isDown(" ") then -- and we're actually holding space
+	-- 	hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
+	-- 	hero.y_speed = hero.y_speed + jump_height * (dt / hero.jetpack_fuel_max)
+  --   hero.air = true
+	-- end
+  --
+  -- if love.keyboard.isDown("d") then
+  --   hero.flip = false
+  --   hero.x_speed = hero.x_speed_max
+  -- elseif love.keyboard.isDown("a") then
+  --   hero.x_speed = - hero.x_speed_max
+  --   hero.flip = true
+  -- else
+  --   hero.x_speed = 0
+  -- end
 
   if hero.y_speed ~= 0 or hero.air == true then -- we're probably jumping
 		hero:move(0, hero.y_speed * dt)
@@ -290,10 +290,11 @@ function game:update(dt)
 
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
+      hero.jetpack_fuel = hero.jetpack_fuel_max
+
 			--hero:move(0,dy)
     if dy == 0 then hero.air = true end
-      hero.jetpack_fuel = hero.jetpack_fuel_max
-      hero.air = false
+    hero.air = false
 		end
 	end
 
@@ -425,7 +426,6 @@ function game:draw()
 
   -- debugs stuff
   if debug then
-    print(hero.jetpack_fuel)
     for _,t in pairs(todo) do
       t:draw('fill')
     end
@@ -485,9 +485,9 @@ end
 
 function setupHero(x,y)
 
-	hero = collider:rectangle(x,y,32,35)
+	hero = collider:rectangle(x,y,32,49)
 
-  hero.jetpack_fuel = 0.2
+  hero.jetpack_fuel = 0
   hero.jetpack_fuel_max = 0.2
 
 	hero.x_speed = 0
@@ -512,7 +512,7 @@ end
 
 function menu:keyreleased(key)
   if key == " " then
-    Gamestate.switch(intro)
+    Gamestate.switch(game)
   end
 end
 
@@ -522,10 +522,25 @@ function pause:keyreleased(key)
   end
 end
 
+function game:keypressed(key)
+  if key == " " then
+    if not hero.air
+    and hero.pode_pular then
+      hero.air = true
+      hero.pode_pular = false
+      hero.y_speed = hero.y_speed_base
+    end
+  end
+end
+
 function game:keyreleased(key)
   if key == " " then
+    if not hero.air then
+      hero.jetpack_fuel = hero.jetpack_fuel_max
+    else
+      hero.jetpack_fuel = 0
+    end
     hero.pode_pular = true
-    hero.jetpack_fuel = hero.jetpack_fuel_max
 
   elseif key == "b" then
     if debug == false then
@@ -554,57 +569,44 @@ end
 function handleInput(dt)
 
   if love.keyboard.isDown(" ")
+  and hero.air
   and hero.jetpack_fuel > 0 then -- we can still move upwards
-    if hero.air then
       hero.jetpack_fuel = hero.jetpack_fuel - dt -- decrease the fuel meter
-    elseif hero.pode_pular then
-      hero.air = true
-      hero.pode_pular = false
-      hero.y_speed = hero.y_speed_base
-    else
-      hero.y_speed = hero.y_speed + 2 * jump_height * (dt / hero.jetpack_fuel_max)
-    end
+      hero.y_speed = hero.y_speed - 2 * jump_height * (dt / hero.jetpack_fuel_max)
+
   end
 
-  if love.keyboard.isDown("right") then
-    hero.flip = false
-    hero.x_speed = hero.x_speed_max
-  elseif love.keyboard.isDown("left") then
-    hero.x_speed = - hero.x_speed_max
+	if love.keyboard.isDown("left")
+  or love.keyboard.isDown("a") then
     hero.flip = true
+    if hero.x_speed >= 0 then
+      if hero.x_speed >= hero.x_speed_base then
+        hero.x_speed = -hero.x_speed
+      else
+        hero.x_speed = -hero.x_speed_base
+      end
+    elseif hero.x_speed > -hero.x_speed_max then
+       hero.x_speed = hero.x_speed - (100 * dt)
+    else
+      hero.x_speed = -hero.x_speed_max
+    end
+	elseif love.keyboard.isDown("right")
+  or love.keyboard.isDown("d") then
+    hero.flip = false -- flag para inverter o desenho
+    if hero.x_speed <= 0 then
+      if hero.x_speed <= -hero.x_speed_base then
+        hero.x_speed = -hero.x_speed
+      else
+        hero.x_speed = hero.x_speed_base
+      end
+    elseif hero.x_speed < hero.x_speed_max then
+       hero.x_speed = hero.x_speed + (100 * dt)
+    else
+       hero.x_speed = hero.x_speed_max
+    end
   else
     hero.x_speed = 0
   end
-
-	-- if love.keyboard.isDown("left") then
-  --   hero.flip = true
-  --   if hero.x_speed >= 0 then
-  --     if hero.x_speed >= hero.x_speed_base then
-  --       hero.x_speed = -hero.x_speed
-  --     else
-  --       hero.x_speed = -hero.x_speed_base
-  --     end
-  --   elseif hero.x_speed > -hero.x_speed_max then
-  --      hero.x_speed = hero.x_speed - (100 * dt)
-  --   else
-  --     hero.x_speed = -hero.x_speed_max
-  --   end
-	-- elseif love.keyboard.isDown("right") then
-  --   hero.flip = false -- flag para inverter o desenho
-  --   if hero.x_speed <= 0 then
-  --     if hero.x_speed <= -hero.x_speed_base then
-  --       hero.x_speed = -hero.x_speed
-  --     else
-  --       hero.x_speed = hero.x_speed_base
-  --     end
-  --   elseif hero.x_speed < hero.x_speed_max then
-  --      hero.x_speed = hero.x_speed + (100 * dt)
-  --   else
-  --      hero.x_speed = hero.x_speed_max
-  --   end
-  -- else
-  --   hero.x_speed = 0
-  -- end
 
 
 end
@@ -630,6 +632,7 @@ function handleCollisions(dt)
 		if dy < 0 then -- we hit the ground again
 			hero.y_speed = 0
       hero.air = false
+      hero.jetpack_fuel = hero.jetpack_fuel_max
 
     elseif dy > 0 then
       hero.y_speed = 0
@@ -664,6 +667,7 @@ function updateHero(dt)
 
 
   if hero.air == true then -- we're falling
+    hero.pode_pular = false
     hero.y_speed = hero.y_speed + gravity * dt
     hero:move(0, hero.y_speed*dt)
   end

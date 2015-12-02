@@ -35,6 +35,12 @@ local moving = {}
 
 function love.load()
   levelLoad()
+
+  level_music = love.audio.newSource("music/floresta1.mp3", "static")
+  menu_music = love.audio.newSource("music/Bleh.mp3", "static")
+  level_music:setLooping(true)
+  menu_music:setLooping(true)
+  menu_music:play()
 end
 
 function levelLoad()
@@ -147,6 +153,12 @@ function levelLoad()
 
   --sonar.kek = iniciar
 
+end
+
+
+function game:enter()
+  menu_music:pause()
+  level_music:play()
 end
 
 function intro:enter()
@@ -494,13 +506,14 @@ end
 
 function menu:keyreleased(key)
   if key == " " then
-    Gamestate.switch(game)
+    Gamestate.switch(intro)
   end
 end
 
 function pause:keyreleased(key)
   if key == "p" then
     Gamestate.switch(game)
+    level_music:setVolume(1)
   end
 end
 
@@ -542,6 +555,7 @@ function game:keyreleased(key)
     invul_activate()
 
   elseif key == "p" then
+    level_music:setVolume(0.5)
     Gamestate.switch(pause)
   elseif key == "l" then
     Gamestate.switch(fini)
